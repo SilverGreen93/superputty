@@ -1087,8 +1087,8 @@ namespace SuperPutty
 
         void TryConnectFromToolbar()
         {
-            String host = this.tbTxtBoxHost.Text;
-            String protoString = (string)this.tbComboProtocol.SelectedItem;
+            String host = tbTxtBoxHost.Text;
+            String protoString = (string)tbComboProtocol.SelectedItem;
 
             if (protoString == "WINCMD" || protoString == "PS" || protoString == "WSL" || protoString == "Mintty" || protoString == "Cygterm")
             {
@@ -1105,19 +1105,26 @@ namespace SuperPutty
                 ConnectionProtocol proto = isScp
                     ? ConnectionProtocol.SSH
                     : connStr.Protocol.GetValueOrDefault((ConnectionProtocol)Enum.Parse(typeof(ConnectionProtocol), protoString));
+                
+                int port = connStr.Port.GetValueOrDefault(dlgEditSession.GetDefaultPort(proto));
+                if (protoString == "VNC" && port < 100)
+                {
+                    port += 5900;
+                }
+
                 SessionData session = new SessionData
                 {
                     Host = connStr.Host,
                     SessionName = connStr.Host,
                     SessionId = SuperPuTTY.MakeUniqueSessionId(SessionData.CombineSessionIds("QuickConnect", connStr.Host)),
                     Proto = proto,
-                    Port = connStr.Port.GetValueOrDefault(dlgEditSession.GetDefaultPort(proto)),
-                    Username = this.tbTxtBoxLogin.Text,
-                    Password = this.tbTxtBoxPassword.Text,
-                    PuttySession = (string)this.tbComboSession.SelectedItem
+                    Port = port,
+                    Username = tbTxtBoxLogin.Text,
+                    Password = tbTxtBoxPassword.Text,
+                    PuttySession = (string)tbComboSession.SelectedItem
                 };
                 SuperPuTTY.OpenSession(new SessionDataStartInfo { Session = session, UseScp = isScp });
-                oldHostName = this.tbTxtBoxHost.Text;
+                oldHostName = tbTxtBoxHost.Text;
                 RefreshConnectionToolbarData();
             }
         }
