@@ -95,8 +95,8 @@ namespace SuperPutty
                 }
             }
 
-            // Register IpcChanncel for single instance support
-            SingleInstanceHelper.RegisterRemotingService();
+            // Register for single instance support
+            SingleInstanceHelper.StartPipeServer(SingleInstanceHelper.Run);
             WindowEvents = new GlobalWindowEvents();
 
             Log.Info("Initialized");

@@ -63,7 +63,7 @@ namespace SuperPutty
                 SuperPuTTY.IsFirstRun, SuperPuTTY.Settings.SingleInstanceMode, onlyInstance);
             if ((EnforceSingleInstance  || SuperPuTTY.Settings.SingleInstanceMode) && !SuperPuTTY.IsFirstRun && !onlyInstance)
             {
-                SingleInstanceHelper.LaunchInExistingInstance(args);
+                SingleInstanceHelper.SendArgsToExistingInstance(args);
                 Log.InfoFormat("Sent Command to Existing Instance: [{0}]", String.Join(" ", args));
                 Environment.Exit(0);
             }

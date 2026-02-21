@@ -1,63 +1,71 @@
 ﻿using System;
+using System.IO.Pipes;
+using System.Text;
+using System.Threading.Tasks;
 using SuperPutty.Data;
 using log4net;
+using System.IO;
 
 namespace SuperPutty.Utils
 {
-    public class SingleInstanceHelper : MarshalByRefObject
+    public class SingleInstanceHelper
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(SingleInstanceHelper));
+        public const string PipeName = "SuperXPuTTYPipe";
 
-        public const string ChannelName = "SuperXPuTTY";
-        public const string SingleInstanceServiceName = "SingleInstance";
+        // Start pipe server for single instance
+        public static void StartPipeServer(Action<string[]> onArgsReceived)
+        {
+            Task.Run(() =>
+            {
+                using (var server = new NamedPipeServerStream(PipeName, PipeDirection.In))
+                {
+                    while (true)
+                    {
+                        server.WaitForConnection();
+                        using (var reader = new StreamReader(server, Encoding.UTF8))
+                        {
+                            string argsLine = reader.ReadLine();
+                            if (!string.IsNullOrEmpty(argsLine))
+                            {
+                                string[] args = argsLine.Split('\t');
+                                Log.InfoFormat("Received remote Run command: [{0}]", string.Join(" ", args));
+                                onArgsReceived?.Invoke(args);
+                            }
+                        }
+                        server.Disconnect();
+                    }
+                }
+            });
+        }
 
-        public static void RegisterRemotingService()
+        // Send args to existing instance
+        public static bool SendArgsToExistingInstance(string[] args)
         {
             try
             {
-                IpcChannel ipcCh = new IpcChannel(ChannelName);
-                ChannelServices.RegisterChannel(ipcCh, false);
-                RemotingConfiguration.RegisterWellKnownServiceType(
-                    typeof(SingleInstanceHelper), SingleInstanceServiceName, WellKnownObjectMode.SingleCall);
-
-                Log.InfoFormat("Registered IpcChannel and Service: [ipc://{0}/{1}]", ChannelName, SingleInstanceServiceName);
+                using (var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out))
+                {
+                    client.Connect(1000); // Wait up to 1 second
+                    using (var writer = new StreamWriter(client, Encoding.UTF8))
+                    {
+                        writer.WriteLine(string.Join("\t", args));
+                        writer.Flush();
+                    }
+                }
+                return true;
             }
-            catch (RemotingException ex)
+            catch (Exception ex)
             {
-                Log.Warn("Unable to register ipcchannel for single instance support, feature will be unavailable (or another instance of SuperPuTTY is already running)", ex);
-            }            
+                Log.Warn("Unable to send args to existing instance (maybe not running)", ex);
+                return false;
+            }
         }
 
-        public static void LaunchInExistingInstance(string[] args)
+        // Example usage: call this in Program/Main
+        public static void Run(string[] args)
         {
-            IpcChannel channel = new IpcChannel();
-            ChannelServices.RegisterChannel(channel, false);
-            string url = String.Format("ipc://{0}/{1}", ChannelName, SingleInstanceServiceName);
-
-            // Register as client for remote object.
-            WellKnownClientTypeEntry remoteType = new WellKnownClientTypeEntry(typeof(SingleInstanceHelper), url);
-            RemotingConfiguration.RegisterWellKnownClientType(remoteType);
-
-            // Create a message sink.
-            string objectUri;
-            IMessageSink messageSink = channel.CreateMessageSink(url, null, out objectUri);
-
-            /*
-            Console.WriteLine("The URI of the message sink is {0}.", objectUri);
-            if (messageSink != null)
-            {
-                Console.WriteLine("The type of the message sink is {0}.", messageSink.GetType().ToString());
-            }
-            */
-
-            SingleInstanceHelper helper = new SingleInstanceHelper();
-            helper.Run(args);
-        }
-
-
-        public void Run(String[] args)
-        {
-            Log.InfoFormat("Received remote Run command: [{0}]", String.Join(" ", args));
+            Log.InfoFormat("Received remote Run command: [{0}]", string.Join(" ", args));
             CommandLineOptions cmd = new CommandLineOptions(args);
             SessionDataStartInfo ssi = cmd.ToSessionStartInfo();
             SuperPuTTY.OpenSession(ssi);

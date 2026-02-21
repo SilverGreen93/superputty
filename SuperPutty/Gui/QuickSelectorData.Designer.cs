@@ -277,7 +277,7 @@ namespace SuperPutty.Gui {
         ///</summary>
         [global::System.Serializable()]
         [global::System.Xml.Serialization.XmlSchemaProviderAttribute("GetTypedTableSchema")]
-        public partial class ItemDataDataTable : global::System.Data.TypedTableBase<ItemDataRow> {
+        public partial class ItemDataDataTable : global::System.Data.DataTable {
             
             private global::System.Data.DataColumn columnName;
             
