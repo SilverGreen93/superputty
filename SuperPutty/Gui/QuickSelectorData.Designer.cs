@@ -365,7 +365,7 @@ namespace SuperPutty.Gui {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public ItemDataRow this[int index] {
                 get {
-                    return ((ItemDataRow)(this.Rows[index]));
+                    return ((ItemDataRow)(base.Rows[index]));
                 }
             }
             
