@@ -205,7 +205,7 @@ namespace SuperPutty.Gui {
             this.EnforceConstraints = true;
             this.SchemaSerializationMode = global::System.Data.SchemaSerializationMode.IncludeSchema;
             this.tableItemData = new ItemDataDataTable();
-            base.Tables.Add((global::System.Data.DataTable)this.tableItemData);
+            base.Tables.Add(this.tableItemData);
         }
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
