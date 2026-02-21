@@ -1,3 +1,8 @@
+2.1.1.0
+ - Allow VNC connection to display number (:1 instead of :5901) for display numbers lower than 100
+ - Accept port separated by space in connection toolbar
+ - Remove default shortcut for reconnect, as it caused issues with certain locales
+
 2.1.0.0
  - Add an option to copy host and port with right click on saved session or open tab
  - Add an option to save a session directly from a QuickConnect open tab
