@@ -172,9 +172,18 @@ namespace SuperPutty.Scp
             Source = SourceType.Local;
             try
             {
-                FileSecurity fs = File.GetAccessControl(fsi.FullName);
-                Owner = fs.GetOwner(typeof(NTAccount)).ToString();
-                Group = fs.GetGroup(typeof(NTAccount)).ToString();
+                if (fsi is FileInfo fileInfo)
+                {
+                    FileSecurity fs = fileInfo.GetAccessControl();
+                    Owner = fs.GetOwner(typeof(NTAccount)).ToString();
+                    Group = fs.GetGroup(typeof(NTAccount)).ToString();
+                }
+                else if (fsi is DirectoryInfo dirInfo)
+                {
+                    DirectorySecurity ds = dirInfo.GetAccessControl();
+                    Owner = ds.GetOwner(typeof(NTAccount)).ToString();
+                    Group = ds.GetGroup(typeof(NTAccount)).ToString();
+                }
             }
             catch (Exception ex)
             {

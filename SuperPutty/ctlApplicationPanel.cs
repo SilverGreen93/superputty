@@ -73,7 +73,9 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 
         public IntPtr AppWindowHandle { get { return this.m_AppWin; } } 
         
-        // Some windows need closed with WM_DESTROY others need closed with WM_CLOSE or they leave zombies
+        [Category("Behavior")]
+        [Description("Specifies whether the application should be closed with WM_DESTROY instead of WM_CLOSE.")]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public bool ApplicationCloseWithDestroy { get; set; }
 
         #endregion
@@ -392,7 +394,7 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 
         private void UpdateTitle()
         {
-            int length = NativeMethods.SendMessage(m_AppWin, NativeMethods.WM_GETTEXTLENGTH, 0, 0) + 1;
+            int length = (int)NativeMethods.SendMessage(m_AppWin, NativeMethods.WM_GETTEXTLENGTH, 0, 0) + 1;
             StringBuilder sb = new StringBuilder(length + 1);
             NativeMethods.SendMessage(m_AppWin, NativeMethods.WM_GETTEXT, sb.Capacity, sb);
             string controlText = sb.ToString();

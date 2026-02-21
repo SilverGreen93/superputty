@@ -116,8 +116,8 @@ namespace SuperPutty
                     form.Icon = new Icon(iconFile);
                 }
 
-                FieldInfo field = typeof(Form).GetField("defaultIcon", BindingFlags.NonPublic | BindingFlags.Static);
-                field.SetValue(null, form.Icon);
+                // FieldInfo field = typeof(Form).GetField("defaultIcon", BindingFlags.NonPublic | BindingFlags.Static);
+                // field.SetValue(null, form.Icon);
             }
             catch (Exception ex)
             {

@@ -448,7 +448,7 @@ namespace SuperPutty
 
                         if (panel.InvokeRequired)
                         {
-                            panel.BeginInvoke((MethodInvoker)delegate {
+                            panel.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate {
                                 panel.Close();
                             });
                         }
