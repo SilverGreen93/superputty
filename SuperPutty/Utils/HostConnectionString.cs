@@ -40,19 +40,38 @@ namespace SuperPutty.Utils
                 // localhost:2020
                 if (int.TryParse(hostPort.Substring(idxPort + 1), out int port))
                 {
-                    this.Host = hostPort.Substring(0, idxPort);
-                    this.Port = port;
+                    Host = hostPort.Substring(0, idxPort);
+                    Port = port;
                 }
                 else
                 {
-                    this.Host = hostPort;
+                    Host = hostPort;
                 }
 
             }
             else
             {
-                // localhost
-                this.Host = hostPort;
+                // Try port separated by space
+                idxPort = hostPort.IndexOf(" ");
+                if (idxPort != -1)
+                {
+                    // localhost 2020
+                    if (int.TryParse(hostPort.Substring(idxPort + 1), out int port))
+                    {
+                        Host = hostPort.Substring(0, idxPort);
+                        Port = port;
+                    }
+                    else
+                    {
+                        Host = hostPort;
+                    }
+
+                }
+                else
+                {
+                    // localhost
+                    Host = hostPort;
+                }
             }
 
 
