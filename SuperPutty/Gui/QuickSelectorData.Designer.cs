@@ -494,7 +494,7 @@ namespace SuperPutty.Gui {
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public void RemoveItemDataRow(ItemDataRow row) {
-                this.Rows.Remove(row);
+                ((global::System.Data.DataTable)this).Rows.Remove(row);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
