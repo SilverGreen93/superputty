@@ -153,7 +153,7 @@ namespace SuperPutty.Gui {
                 global::System.Data.DataSet ds = new global::System.Data.DataSet();
                 ds.ReadXml(reader);
                 if ((ds.Tables["ItemData"] != null)) {
-                    base.Tables.Add(new ItemDataDataTable(ds.Tables["ItemData"]));
+                    base.Tables.Add(ds.Tables["ItemData"]);
                 }
                 this.DataSetName = ds.DataSetName;
                 this.Prefix = ds.Prefix;
