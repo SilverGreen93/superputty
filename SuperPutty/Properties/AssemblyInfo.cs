@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("SilverGreen93")]
 [assembly: AssemblyProduct("SuperXPuTTY")]
-[assembly: AssemblyCopyright("Copyright © 2025 SilverGreen93")]
+[assembly: AssemblyCopyright("Copyright © 2026 SilverGreen93")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -31,9 +31,9 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 #if DEBUG
-[assembly: AssemblyVersion("2.1.0.*")]
-[assembly: AssemblyFileVersion("2.1.0.0")]
+[assembly: AssemblyVersion("2.1.1.*")]
+[assembly: AssemblyFileVersion("2.1.1.0")]
 #else
-[assembly: AssemblyVersion("2.1.0.0")]
-[assembly: AssemblyFileVersion("2.1.0.0")]
+[assembly: AssemblyVersion("2.1.1.0")]
+[assembly: AssemblyFileVersion("2.1.1.0")]
 #endif
