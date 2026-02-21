@@ -1,24 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{E03FA8D9-555B-4AD6-A310-6A72B20024D1}</ProjectGuid>
+    <TargetFramework>net48</TargetFramework>
     <OutputType>WinExe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SuperPutty</RootNamespace>
     <AssemblyName>SuperXPuTTY</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <UpgradeBackupLocation>
-    </UpgradeBackupLocation>
-    <OldToolsVersion>3.5</OldToolsVersion>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <TargetFrameworkProfile />
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -34,398 +19,61 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
     <RuntimeIdentifier>win</RuntimeIdentifier>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <StartupObject>SuperPutty.Program</StartupObject>
+    <ApplicationIcon>Apps-utilities-terminal.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PostBuildEvent>IF NOT EXIST "$(SolutionDir)bin\Release\themes" mkdir "$(SolutionDir)bin\Release\themes"
+IF NOT EXIST "$(SolutionDir)bin\Release\themes\default" xcopy /E  /Y "$(ProjectDir)Resources\themes" "$(SolutionDir)bin\Release\themes\"
+IF EXIST "$(SolutionDir)bin\Release\themes\default\icons" xcopy /D "$(ProjectDir)Resources\themes\default\icons\*.png" "$(SolutionDir)bin\Release\themes\default\icons\"
+IF NOT EXIST "$(SolutionDir)bin\Debug\themes" mkdir "$(SolutionDir)bin\Debug\themes" 
+IF NOT EXIST "$(SolutionDir)bin\Debug\themes\default" xcopy /E  /Y "$(ProjectDir)Resources\themes" "$(SolutionDir)bin\Debug\themes\"
+IF EXIST "$(SolutionDir)bin\Debug\themes\default\icons" xcopy /D "$(ProjectDir)Resources\themes\default\icons\*.png" "$(SolutionDir)bin\Debug\themes\default\icons\"
+SET errorlevel=</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
     <OutputPath>..\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>true</UseVSHostingProcess>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
     <OutputPath>..\bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject>SuperPutty.Program</StartupObject>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationIcon>Apps-utilities-terminal.ico</ApplicationIcon>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Runtime.Remoting" />
-    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel.Web" />
     <Reference Include="System.Web" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
+    <PackageReference Include="DockPanelSuite" Version="3.1.1" />
+    <PackageReference Include="DockPanelSuite.ThemeVS2015" Version="3.1.1" />
+    <PackageReference Include="log4net" Version="3.1.0" />
+    <PackageReference Include="Microsoft.VisualBasic" Version="10.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AboutBox.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="AboutBox.Designer.cs">
-      <DependentUpon>AboutBox.cs</DependentUpon>
-    </Compile>
-    <Compile Include="DarkModeForms\DarkModeCS.cs" />
-    <Compile Include="DarkModeForms\FlatComboBox.cs">
+    <Compile Update="DarkModeForms\FlatComboBox.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="DarkModeForms\FlatProgressBar.cs">
+    <Compile Update="DarkModeForms\FlatProgressBar.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="DarkModeForms\FlatTabControl.cs">
+    <Compile Update="DarkModeForms\FlatTabControl.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="DarkModeForms\Messenger.cs" />
-    <Compile Include="Data\HistoryEntry.cs" />
-    <Compile Include="Data\KeyboardShortcut.cs" />
-    <Compile Include="Data\MobaDataHelper.cs" />
-    <Compile Include="dlgScriptEditor.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="dlgScriptEditor.Designer.cs">
-      <DependentUpon>dlgScriptEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="GitRelease.cs" />
-    <Compile Include="Gui\BaseViewModel.cs" />
-    <Compile Include="Gui\DataGridViewProgressColumn.cs" />
-    <Compile Include="Gui\DpiUtils.cs" />
-    <Compile Include="Gui\ImageListPopup.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Gui\ImageListPopup.designer.cs">
-      <DependentUpon>ImageListPopup.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmDocumentSelector.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmDocumentSelector.Designer.cs">
-      <DependentUpon>frmDocumentSelector.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Gui\KeyboardShortcutEditor.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Gui\KeyboardShortcutEditor.Designer.cs">
-      <DependentUpon>KeyboardShortcutEditor.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Gui\ListViewExtensions.cs" />
-    <Compile Include="Gui\QuickSelector.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Gui\QuickSelector.Designer.cs">
-      <DependentUpon>QuickSelector.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Gui\QuickSelectorData.cs">
+    <Compile Update="Gui\QuickSelectorData.cs">
       <DependentUpon>QuickSelectorData.xsd</DependentUpon>
     </Compile>
-    <Compile Include="Gui\QuickSelectorData.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>QuickSelectorData.xsd</DependentUpon>
-    </Compile>
-    <Compile Include="HttpRequest.cs" />
-    <Compile Include="Properties\Settings.cs" />
-    <Compile Include="Scp\BrowserCommon.cs" />
-    <Compile Include="Scp\BrowserViewModel.cs" />
-    <Compile Include="Scp\BrowserPresenter.cs" />
-    <Compile Include="Scp\BrowserView.cs">
+    <Compile Update="Scp\BrowserView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Scp\BrowserView.Designer.cs">
-      <DependentUpon>BrowserView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Scp\FileTransfer.cs" />
-    <Compile Include="Scp\FileTransferPresenter.cs" />
-    <Compile Include="Scp\FileTransferView.cs">
+    <Compile Update="Scp\FileTransferView.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Scp\FileTransferView.Designer.cs">
-      <DependentUpon>FileTransferView.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Scp\FileTransferViewModel.cs" />
-    <Compile Include="Scp\LocalBrowserModel.cs" />
-    <Compile Include="Scp\PscpBrowserPanel.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Scp\PscpBrowserPanel.Designer.cs">
-      <DependentUpon>PscpBrowserPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Scp\PscpClient.cs" />
-    <Compile Include="Scp\RemoteBrowserModel.cs" />
-    <Compile Include="Scripting\CloseSessionCommand.cs" />
-    <Compile Include="Scripting\frmPrivatePrompt.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Scripting\OpenSessionCommand.cs" />
-    <Compile Include="Scripting\PromptCommand.cs" />
-    <Compile Include="Scripting\PwdpromptCommand.cs" />
-    <Compile Include="Scripting\SendCharCommand.cs" />
-    <Compile Include="Scripting\SendKeyCommand.cs" />
-    <Compile Include="Scripting\SendLineCommand.cs" />
-    <Compile Include="Scripting\SleepCommand.cs" />
-    <Compile Include="Scripting\Spsl.cs" />
-    <Compile Include="SessionDetail.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SessionDetail.Designer.cs">
-      <DependentUpon>SessionDetail.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ToolWindowEx.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ToolWindowEx.Designer.cs">
-      <DependentUpon>ToolWindowEx.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Utils\ChildWindowFocusHelper.cs" />
-    <Compile Include="Utils\CommandData.cs" />
-    <Compile Include="Utils\CygtermStartInfo.cs" />
-    <Compile Include="ctlApplicationPanel.cs">
+    <Compile Update="ctlApplicationPanel.cs">
       <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="Data\LayoutData.cs" />
-    <Compile Include="Data\PuttyDataHelper.cs" />
-    <Compile Include="Data\RDPDataHelper.cs" />
-    <Compile Include="Data\SessionData.cs" />
-    <Compile Include="Data\SessionDataStartInfo.cs" />
-    <Compile Include="DebugLogViewer.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="DebugLogViewer.Designer.cs">
-      <DependentUpon>DebugLogViewer.cs</DependentUpon>
-    </Compile>
-    <Compile Include="dlgMouseFeedback.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="dlgMouseFeedback.Designer.cs">
-      <DependentUpon>dlgMouseFeedback.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Gui\dlgRenameItem.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Gui\dlgRenameItem.Designer.cs">
-      <DependentUpon>dlgRenameItem.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmTransferStatus.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmTransferStatus.Designer.cs">
-      <DependentUpon>frmTransferStatus.cs</DependentUpon>
-    </Compile>
-    <Compile Include="LayoutsList.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="LayoutsList.Designer.cs">
-      <DependentUpon>LayoutsList.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Log4netDebugLogForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Log4netDebugLogForm.Designer.cs">
-      <DependentUpon>Log4netDebugLogForm.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Logger.cs" />
-    <Compile Include="Properties\Settings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-    <Compile Include="RemoteFileListPanel.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="RemoteFileListPanel.Designer.cs">
-      <DependentUpon>RemoteFileListPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="dlgFindPutty.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="dlgFindPutty.Designer.cs">
-      <DependentUpon>dlgFindPutty.cs</DependentUpon>
-    </Compile>
-    <Compile Include="dlgLogin.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="dlgLogin.Designer.cs">
-      <DependentUpon>dlgLogin.cs</DependentUpon>
-    </Compile>
-    <Compile Include="frmSuperPutty.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="frmSuperPutty.Designer.cs">
-      <DependentUpon>frmSuperPutty.cs</DependentUpon>
-    </Compile>
-    <Compile Include="dlgEditSession.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="dlgEditSession.Designer.cs">
-      <DependentUpon>dlgEditSession.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Utils\CommandLineOptions.cs" />
-    <Compile Include="Utils\ExternalApplications.cs" />
-    <Compile Include="Utils\FormUtils.cs" />
-    <Compile Include="Utils\GlobalHotKey.cs" />
-    <Compile Include="Utils\GlobalWindowEvents.cs" />
-    <Compile Include="Utils\HostConnectionString.cs" />
-    <Compile Include="Utils\MinttyStartInfo.cs" />
-    <Compile Include="Utils\VNCStartInfo.cs" />
-    <Compile Include="Utils\RDPStartInfo.cs" />
-    <Compile Include="Utils\WSLStartInfo.cs" />
-    <Compile Include="Utils\WCMDStartInfo.cs" />
-    <Compile Include="Utils\PSStartInfo.cs" />
-    <Compile Include="Utils\NativeMethods.cs" />
-    <Compile Include="Utils\PortableSettingsProvider.cs" />
-    <Compile Include="Utils\PropertyNotifiableObject.cs" />
-    <Compile Include="Utils\PuttyStartInfo.cs" />
-    <Compile Include="Utils\SingleInstanceHelper.cs" />
-    <Compile Include="Utils\SingletonToolWindowHelper.cs" />
-    <Compile Include="Utils\DesktopWindowHelper.cs" />
-    <Compile Include="Utils\SortableBindingList.cs" />
-    <Compile Include="Utils\TabSwitcher.cs" />
-    <Compile Include="Utils\TextBoxFocusHelper.cs" />
-    <Compile Include="Utils\WindowActivator.cs" />
-    <EmbeddedResource Include="AboutBox.resx">
-      <DependentUpon>AboutBox.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="dlgScriptEditor.resx">
-      <DependentUpon>dlgScriptEditor.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Gui\ImageListPopup.resx">
-      <DependentUpon>ImageListPopup.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ctlApplicationPanel.resx">
-      <DependentUpon>ctlApplicationPanel.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="DebugLogViewer.resx">
-      <DependentUpon>DebugLogViewer.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="dlgMouseFeedback.resx">
-      <DependentUpon>dlgMouseFeedback.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Gui\dlgRenameItem.resx">
-      <DependentUpon>dlgRenameItem.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmDocumentSelector.resx">
-      <DependentUpon>frmDocumentSelector.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmTransferStatus.resx">
-      <DependentUpon>frmTransferStatus.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Gui\KeyboardShortcutEditor.resx">
-      <DependentUpon>KeyboardShortcutEditor.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Gui\QuickSelector.resx">
-      <DependentUpon>QuickSelector.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="LayoutsList.resx">
-      <DependentUpon>LayoutsList.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Log4netDebugLogForm.resx">
-      <DependentUpon>Log4netDebugLogForm.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="RemoteFileListPanel.resx">
-      <DependentUpon>RemoteFileListPanel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="dlgFindPutty.resx">
-      <DependentUpon>dlgFindPutty.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="dlgLogin.resx">
-      <DependentUpon>dlgLogin.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="frmSuperPutty.resx">
-      <DependentUpon>frmSuperPutty.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="dlgEditSession.resx">
-      <DependentUpon>dlgEditSession.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Scp\BrowserView.resx">
-      <DependentUpon>BrowserView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Scp\FileTransferView.resx">
-      <DependentUpon>FileTransferView.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Scp\PscpBrowserPanel.resx">
-      <DependentUpon>PscpBrowserPanel.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SessionDetail.resx">
-      <DependentUpon>SessionDetail.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="SessionTreeview.resx">
-      <DependentUpon>SessionTreeview.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ctlPuttyPanel.resx">
-      <DependentUpon>ctlPuttyPanel.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ToolWindow.resx">
-      <DependentUpon>ToolWindow.cs</DependentUpon>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="PscpTransfer.cs" />
-    <Compile Include="SessionTreeview.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="SessionTreeview.Designer.cs">
-      <DependentUpon>SessionTreeview.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ctlPuttyPanel.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ctlPuttyPanel.Designer.cs">
-      <DependentUpon>ctlPuttyPanel.cs</DependentUpon>
-    </Compile>
-    <Compile Include="SuperPuTTY.cs" />
-    <Compile Include="ToolWindow.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ToolWindow.Designer.cs">
-      <DependentUpon>ToolWindow.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -451,82 +99,23 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="app.manifest" />
-    <None Include="Gui\QuickSelectorData.xsc">
+    <None Update="Gui\QuickSelectorData.xsc">
       <DependentUpon>QuickSelectorData.xsd</DependentUpon>
     </None>
-    <None Include="Gui\QuickSelectorData.xsd">
+    <None Update="Gui\QuickSelectorData.xsd">
       <SubType>Designer</SubType>
       <Generator>MSDataSetGenerator</Generator>
       <LastGenOutput>QuickSelectorData.Designer.cs</LastGenOutput>
     </None>
-    <None Include="Gui\QuickSelectorData.xss">
+    <None Update="Gui\QuickSelectorData.xss">
       <DependentUpon>QuickSelectorData.xsd</DependentUpon>
-    </None>
-    <None Include="Properties\DataSources\SuperPutty.Data.KeyboardShortcut.datasource" />
-    <None Include="Properties\DataSources\SuperPutty.Scp.FileTransferViewItem.datasource" />
-    <None Include="Properties\DataSources\SuperPutty.Scp.IBrowserModel.datasource" />
-    <None Include="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Apps-utilities-terminal.ico" />
-    <None Include="Resources\script_code.png" />
-    <None Include="Resources\folder-up.png" />
-    <None Include="Resources\page-blue.png" />
-    <None Include="Resources\find.png" />
     <Content Include="Resources\accept-gray.png" />
     <Content Include="Resources\application_edit.png" />
     <Content Include="Resources\Apps-terminal.ico" />
     <Content Include="Resources\Apps-utilities-terminal.ico" />
-    <None Include="Resources\folder.png" />
-    <None Include="Resources\cross-black.png" />
-    <None Include="Resources\bullet_go.png" />
-    <None Include="Resources\lightning_go.png" />
-    <None Include="Resources\keyboard.png" />
-    <None Include="Resources\application_xp_terminal.png" />
-    <None Include="Resources\accept.png" />
-    <None Include="Resources\connect.png" />
-    <None Include="Resources\computer.png" />
-    <None Include="Resources\tick.png" />
-    <None Include="Resources\server_go.png" />
-    <None Include="Resources\stop.png" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="DockPanelSuite">
-      <Version>3.1.1</Version>
-    </PackageReference>
-    <PackageReference Include="DockPanelSuite.ThemeVS2015">
-      <Version>3.1.1</Version>
-    </PackageReference>
-    <PackageReference Include="log4net">
-      <Version>3.1.0</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualBasic">
-      <Version>10.3.0</Version>
-    </PackageReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>IF NOT EXIST "$(SolutionDir)bin\Release\themes" mkdir "$(SolutionDir)bin\Release\themes"
-IF NOT EXIST "$(SolutionDir)bin\Release\themes\default" xcopy /E  /Y "$(ProjectDir)Resources\themes" "$(SolutionDir)bin\Release\themes\"
-IF EXIST "$(SolutionDir)bin\Release\themes\default\icons" xcopy /D "$(ProjectDir)Resources\themes\default\icons\*.png" "$(SolutionDir)bin\Release\themes\default\icons\"
-IF NOT EXIST "$(SolutionDir)bin\Debug\themes" mkdir "$(SolutionDir)bin\Debug\themes" 
-IF NOT EXIST "$(SolutionDir)bin\Debug\themes\default" xcopy /E  /Y "$(ProjectDir)Resources\themes" "$(SolutionDir)bin\Debug\themes\"
-IF EXIST "$(SolutionDir)bin\Debug\themes\default\icons" xcopy /D "$(ProjectDir)Resources\themes\default\icons\*.png" "$(SolutionDir)bin\Debug\themes\default\icons\"
-SET errorlevel=</PostBuildEvent>
-  </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
