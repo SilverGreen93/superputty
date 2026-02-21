@@ -357,7 +357,7 @@ namespace SuperPutty.Gui {
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
-                    return this.Rows.Count;
+                    return base.Rows.Count;
                 }
             }
             
