@@ -397,7 +397,7 @@ namespace SuperPutty.Gui {
                         TextColor,
                         Tag};
                 rowItemDataRow.ItemArray = columnValuesArray;
-                this.Rows.Add(rowItemDataRow);
+                base.Rows.Add(rowItemDataRow);
                 return rowItemDataRow;
             }
             
