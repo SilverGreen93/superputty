@@ -191,25 +191,25 @@
     <Setting Name="FilterSessionsOnChange" Provider="SuperPutty.Utils.PortableSettingsProvider" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="InterfaceTheme" Type="System.Int32" Scope="User">
+    <Setting Name="InterfaceTheme" Provider="SuperPutty.Utils.PortableSettingsProvider" Type="System.Int32" Scope="User">
       <Value Profile="(Default)">0</Value>
     </Setting>
     <Setting Name="ShowDocumentIcons" Provider="SuperPutty.Utils.PortableSettingsProvider" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="Action_RestartSession_Shortcut" Type="System.Windows.Forms.Keys" Scope="User">
+    <Setting Name="Action_RestartSession_Shortcut" Provider="SuperPutty.Utils.PortableSettingsProvider" Type="System.Windows.Forms.Keys" Scope="User">
       <Value Profile="(Default)">None</Value>
     </Setting>
-    <Setting Name="AutostartX" Type="System.Boolean" Scope="User">
+    <Setting Name="AutostartX" Provider="SuperPutty.Utils.PortableSettingsProvider" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="Action_ResetTerminal_Shortcut" Type="System.Windows.Forms.Keys" Scope="User">
+    <Setting Name="Action_ResetTerminal_Shortcut" Provider="SuperPutty.Utils.PortableSettingsProvider" Type="System.Windows.Forms.Keys" Scope="User">
       <Value Profile="(Default)">None</Value>
     </Setting>
-    <Setting Name="Action_ClearScrollback_Shortcut" Type="System.Windows.Forms.Keys" Scope="User">
+    <Setting Name="Action_ClearScrollback_Shortcut" Provider="SuperPutty.Utils.PortableSettingsProvider" Type="System.Windows.Forms.Keys" Scope="User">
       <Value Profile="(Default)">None</Value>
     </Setting>
-    <Setting Name="Action_CopyAllToClipboard_Shortcut" Type="System.Windows.Forms.Keys" Scope="User">
+    <Setting Name="Action_CopyAllToClipboard_Shortcut" Provider="SuperPutty.Utils.PortableSettingsProvider" Type="System.Windows.Forms.Keys" Scope="User">
       <Value Profile="(Default)">None</Value>
     </Setting>
   </Settings>
