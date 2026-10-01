@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.ComponentModel;
+using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace SuperPutty
@@ -88,7 +89,9 @@ namespace SuperPutty
         }
 
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ToolWindowDocument PreviousPanel { get; set; }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ToolWindowDocument NextPanel { get; set; }
     }
 }

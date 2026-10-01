@@ -50,6 +50,7 @@ namespace SuperPutty
 
         //internal DockPanel DockPanel { get; private set; }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ToolWindowDocument CurrentPanel { get; set; }
 
         private SingletonToolWindowHelper<SessionTreeview> sessions;
