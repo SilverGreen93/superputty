@@ -2061,6 +2061,31 @@ namespace SuperPutty
             {
                 base.WndProc(ref m);
             }
+            if (m.Msg == (int)NativeMethods.WM.DISPLAYCHANGE)
+            {
+                this.BeginInvoke(new Action(this.OnDisplayChanged));
+            }
+        }
+
+        protected override void OnDpiChanged(DpiChangedEventArgs e)
+        {
+            base.OnDpiChanged(e);
+            this.BeginInvoke(new Action(this.OnDisplayChanged));
+        }
+
+        /// <summary>
+        /// Resolution or DPI changed (e.g. an RDP reconnect from a 4K client): the dock
+        /// layout can keep its old pixel sizes, so lay everything out again and refit
+        /// the terminals. Runs after the change has settled; safe to run repeatedly.
+        /// </summary>
+        private void OnDisplayChanged()
+        {
+            this.PerformLayout();
+            this.DockPanel.PerformLayout();
+            foreach (ctlPuttyPanel panel in this.DockPanel.Contents.OfType<ctlPuttyPanel>())
+            {
+                panel.AppPanel?.RefreshAfterDisplayChange();
+            }
         }
 
         public enum TabTextBehavior

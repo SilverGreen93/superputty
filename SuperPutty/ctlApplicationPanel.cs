@@ -163,6 +163,21 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             this.MoveWindow("RefreshWindow");
         }
 
+        /// <summary>
+        /// After a resolution or DPI change (e.g. an RDP reconnect from another client):
+        /// refit the window and have the embedded PuTTY reload its fonts, in case
+        /// Windows skipped the DPI message for our window tree.
+        /// </summary>
+        public void RefreshAfterDisplayChange()
+        {
+            const uint WM_DPICHANGED_AFTERPARENT = 0x02E3;
+            if (!this.ExternalProcessCaptured)
+                return;
+            this.MoveWindow("DisplayChange");
+            if (m_Embedded)
+                NativeMethods.SendMessage(m_AppWin, WM_DPICHANGED_AFTERPARENT, 0, 0);
+        }
+
         private void MoveWindow(string src)
         {
             // if there is more than one screen and we're maximizing the window on the non-primary screen
