@@ -13,6 +13,8 @@ namespace SuperPutty.Gui
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool ReleaseDC(IntPtr hWnd, IntPtr hDC);
+        [DllImport("user32.dll")]
+        public static extern int GetDpiForWindow(IntPtr hWnd);
 
         /// <summary>
         /// Taken from https://oliversturm.com/blog/2010/09/02/the-crime-that-is-windows-dpi-handling/
