@@ -303,6 +303,16 @@ namespace SuperPutty
         {
             if (!this.AppPanel.ExternalProcessCaptured) { return; }
 
+            if (this.AppPanel.IsEmbedded)
+            {
+                // Plain keyboard focus on our own child window: no retries needed
+                if (this.InvokeRequired)
+                    this.BeginInvoke(new Action(() => this.AppPanel.ReFocusPuTTY(caller)));
+                else
+                    this.AppPanel.ReFocusPuTTY(caller);
+                return;
+            }
+
             bool success = false;
             for (int i = 0; i < RefocusAttempts; i++)
             {
@@ -443,9 +453,12 @@ namespace SuperPutty
             }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public SessionData Session { get; set; }
         public ApplicationPanel AppPanel { get; private set; }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ctlPuttyPanel previousPanel { get; set; }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ctlPuttyPanel nextPanel { get; set; }
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
@@ -480,6 +493,15 @@ namespace SuperPutty
         {
             Log.DebugFormat("Sending Putty Command: command={0}", command);
 
+            if (this.AppPanel.IsEmbedded)
+            {
+                // Same thread as the terminal: focus it, then let PuTTY run the command
+                // from the message loop (commands like Change Settings open a modal dialog)
+                SetFocusToChildApplication("SendPuttyCommand");
+                NativeMethods.PostMessage(AppPanel.AppWindowHandle, (uint)NativeMethods.WM.SYSCOMMAND, command, 0);
+                return;
+            }
+
             ThreadPool.QueueUserWorkItem(delegate
             {
                 try
@@ -494,12 +516,14 @@ namespace SuperPutty
             });
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool AcceptCommands
         {
             get { return this.acceptCommandsToolStripMenuItem.Checked;  }
             set { this.acceptCommandsToolStripMenuItem.Checked = value; }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string TextOverride { get; set; }
 
         private void copyHostNameToolStripMenuItem_Click(object sender, EventArgs e)

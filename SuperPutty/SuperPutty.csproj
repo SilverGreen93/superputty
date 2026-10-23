@@ -123,4 +123,27 @@
       <Link>themes\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </None>
   </ItemGroup>
+  <!--
+    Embedded PuTTY (putty-embed.dll) from ..\putty, built with CMake.
+    Needs cmake and a C compiler (MSVC or MinGW) on PATH.
+    -p:SkipPuttyBuild=true uses an existing build; -p:PuttyCMake=path overrides cmake.
+  -->
+  <PropertyGroup>
+    <PuttyDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\putty'))</PuttyDir>
+    <PuttyBuildDir>$(PuttyDir)\build</PuttyBuildDir>
+    <PuttyCMake Condition="'$(PuttyCMake)' == ''">cmake</PuttyCMake>
+  </PropertyGroup>
+  <Target Name="BuildPuttyEmbed" BeforeTargets="BeforeBuild" Condition="'$(SkipPuttyBuild)' != 'true' And Exists('$(PuttyDir)\CMakeLists.txt')">
+    <Exec Condition="!Exists('$(PuttyBuildDir)\CMakeCache.txt')" Command="&quot;$(PuttyCMake)&quot; -S &quot;$(PuttyDir)&quot; -B &quot;$(PuttyBuildDir)&quot; -DCMAKE_BUILD_TYPE=Release" />
+    <Exec Command="&quot;$(PuttyCMake)&quot; --build &quot;$(PuttyBuildDir)&quot; --config Release --target putty-embed" />
+  </Target>
+  <Target Name="CopyPuttyEmbed" AfterTargets="Build">
+    <ItemGroup>
+      <!-- single-config generators (Ninja, Makefiles) or Visual Studio's Release folder -->
+      <PuttyEmbedDll Include="$(PuttyBuildDir)\putty-embed.dll" Condition="Exists('$(PuttyBuildDir)\putty-embed.dll')" />
+      <PuttyEmbedDll Include="$(PuttyBuildDir)\Release\putty-embed.dll" Condition="Exists('$(PuttyBuildDir)\Release\putty-embed.dll')" />
+    </ItemGroup>
+    <Warning Condition="'@(PuttyEmbedDll)' == ''" Text="putty-embed.dll not found in $(PuttyBuildDir): sessions will need an external putty.exe" />
+    <Copy SourceFiles="@(PuttyEmbedDll)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
 </Project>

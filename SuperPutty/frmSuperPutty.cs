@@ -50,6 +50,7 @@ namespace SuperPutty
 
         //internal DockPanel DockPanel { get; private set; }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ToolWindowDocument CurrentPanel { get; set; }
 
         private SingletonToolWindowHelper<SessionTreeview> sessions;
@@ -232,21 +233,62 @@ namespace SuperPutty
             puTTYConfigurationToolStripMenuItem.Text = "&" + SuperPuTTY.PuTTYAppName + " configuration";
             aboutSuperPuTTYToolStripMenuItem.Text = "About " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
             Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
-
-            DockPanel.Theme.Skin.DockPaneStripSkin.TextFont = new Font("Segoe UI", 10.0f, FontStyle.Regular);
         }
+
+        /// <summary>Set the toolbar, menu and tab fonts and the toolbar box sizes for a DPI</summary>
+        private readonly List<Action<int>> dpiScalers = new List<Action<int>>();
+        private int appliedDpi;
 
         private void FixDpiScalingIssues()
         {
-            this.tbComboProtocol.Size = DpiUtils.ScaleSize(this.tbComboProtocol.Size);
-            this.tbComboProtocol.DropDownWidth = DpiUtils.ScaleWidth(this.tbComboProtocol.DropDownWidth);
-            this.tbTxtBoxHost.Size = DpiUtils.ScaleSize(this.tbTxtBoxHost.Size);
-            this.tbTxtBoxLogin.Size = DpiUtils.ScaleSize(this.tbTxtBoxLogin.Size);
-            this.tbTxtBoxPassword.Size = DpiUtils.ScaleSize(this.tbTxtBoxPassword.Size);
-            this.tbComboSession.Size = DpiUtils.ScaleSize(this.tbComboSession.Size);
+            // Fonts are made for the system DPI, the box sizes are designed at 96 DPI.
+            // Scale from the designer values each time, so applying twice is harmless.
+            int systemDpi = DpiUtils.GetScreenDPI().Height;
+            Font Scaled(Font f, int dpi) => new Font(f.FontFamily, f.Size * dpi / systemDpi, f.Style, f.Unit, f.GdiCharSet);
 
-            this.tsSendCommandCombo.Size = DpiUtils.ScaleSize(this.tsSendCommandCombo.Size);
-            this.tsSendCommandCombo.DropDownWidth = DpiUtils.ScaleWidth(this.tsSendCommandCombo.DropDownWidth);
+            foreach (ToolStrip strip in new ToolStrip[] { menuStrip1, tsConnect, tsCommands, statusStrip1 })
+            {
+                Font stripFont = strip.Font;
+                this.dpiScalers.Add(dpi => strip.Font = Scaled(stripFont, dpi));
+                // items with their own font (the rest inherit the strip's)
+                foreach (ToolStripItem item in strip.Items)
+                {
+                    Font itemFont = item.Font;
+                    if (!itemFont.Equals(stripFont))
+                        this.dpiScalers.Add(dpi => item.Font = Scaled(itemFont, dpi));
+                }
+            }
+
+            Font tabFont = new Font("Segoe UI", 10.0f, FontStyle.Regular);
+            this.dpiScalers.Add(dpi => DockPanel.Theme.Skin.DockPaneStripSkin.TextFont = Scaled(tabFont, dpi));
+
+            foreach (ToolStripItem box in new ToolStripItem[] { tbComboProtocol, tbTxtBoxHost, tbTxtBoxLogin, tbTxtBoxPassword, tbComboSession, tsSendCommandCombo })
+            {
+                Size size = box.Size;
+                this.dpiScalers.Add(dpi => box.Size = new Size(size.Width * dpi / 96, size.Height * dpi / 96));
+            }
+            foreach (ToolStripComboBox combo in new[] { tbComboProtocol, tsSendCommandCombo })
+            {
+                int width = combo.DropDownWidth;
+                this.dpiScalers.Add(dpi => combo.DropDownWidth = width * dpi / 96);
+            }
+
+            ApplyDpiScaling(systemDpi);
+        }
+
+        /// <summary>
+        /// WinForms leaves these alone when the DPI changes at runtime (e.g. an RDP
+        /// reconnect from a client with another scale), so they stay at the old size.
+        /// </summary>
+        private void ApplyDpiScaling(int dpi)
+        {
+            if (dpi <= 0 || dpi == this.appliedDpi)
+                return;
+            this.appliedDpi = dpi;
+            foreach (Action<int> scale in this.dpiScalers)
+            {
+                scale(dpi);
+            }
         }
 
         private void TsCommandHistory_ListChanged(object sender, ListChangedEventArgs e)
@@ -1006,8 +1048,15 @@ namespace SuperPutty
 
         private void puTTYConfigurationToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Process p = new Process {StartInfo = {FileName = SuperPuTTY.Settings.PuttyExe}};
-            p.Start();
+            if (PuttyEmbed.IsAvailable)
+            {
+                PuttyEmbed.ShowConfig();
+            }
+            else
+            {
+                Process p = new Process {StartInfo = {FileName = SuperPuTTY.Settings.PuttyExe}};
+                p.Start();
+            }
 
             SuperPuTTY.ReportStatus("Lauched Putty Configuration");
         }
@@ -2052,6 +2101,33 @@ namespace SuperPutty
             if (callBase)
             {
                 base.WndProc(ref m);
+            }
+            if (m.Msg == (int)NativeMethods.WM.DISPLAYCHANGE)
+            {
+                this.BeginInvoke(new Action(this.OnDisplayChanged));
+            }
+        }
+
+        protected override void OnDpiChanged(DpiChangedEventArgs e)
+        {
+            base.OnDpiChanged(e);
+            this.BeginInvoke(new Action(this.OnDisplayChanged));
+        }
+
+        /// <summary>
+        /// Resolution or DPI changed (e.g. an RDP reconnect from a 4K client): the dock
+        /// layout can keep its old pixel sizes, so lay everything out again and refit
+        /// the terminals. Runs after the change has settled; safe to run repeatedly.
+        /// </summary>
+        private void OnDisplayChanged()
+        {
+            ApplyDpiScaling(DpiUtils.GetDpiForWindow(this.Handle));
+            this.PerformLayout();
+            this.DockPanel.PerformLayout();
+            this.DockPanel.Invalidate(true); // tab strips measure their text when painting
+            foreach (ctlPuttyPanel panel in this.DockPanel.Contents.OfType<ctlPuttyPanel>())
+            {
+                panel.AppPanel?.RefreshAfterDisplayChange();
             }
         }
 

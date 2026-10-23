@@ -344,6 +344,7 @@ namespace SuperPutty
 
         #region Validation Logic
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public SessionNameValidationHandler SessionNameValidator { get; set; }
 
         private void textBoxSessionName_Validating(object sender, CancelEventArgs e)

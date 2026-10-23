@@ -195,6 +195,22 @@ namespace SuperPutty.Scp
         /// <param name="target"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
+        /// <summary>The pscp process currently running, if any</summary>
+        private volatile Process currentProcess;
+
+        /// <summary>
+        /// Stop the running pscp operation (from any thread): the operation then
+        /// returns with whatever result it has.
+        /// </summary>
+        public void Cancel()
+        {
+            Process proc = this.currentProcess;
+            if (proc != null)
+            {
+                SafeKill(proc);
+            }
+        }
+
         public FileTransferResult CopyFiles(List<BrowserFileInfo> sourceFiles, BrowserFileInfo target, TransferUpdateCallback callback)
         {
             lock(this)
@@ -324,6 +340,7 @@ namespace SuperPutty.Scp
                     // Start pscp
                     Log.InfoFormat("Starting process: file={0}, args={1}", this.Options.PscpLocation, argsToLog);
                     proc.Start();
+                    this.currentProcess = proc;
 
                     // Timeout when no output is received
                     timeoutTimer = new Timer(
@@ -427,6 +444,7 @@ namespace SuperPutty.Scp
                 }
                 finally
                 {
+                    this.currentProcess = null;
                     SafeKill(proc);
                     SafeDispose(timeoutTimer, proc, outReader, errReader);
                 }
@@ -561,10 +579,9 @@ namespace SuperPutty.Scp
                         keepReading = AppendLineAndNotify(line);
                     }
                 }
-                catch (ThreadAbortException)
+                catch (ObjectDisposedException)
                 {
-                    // signal to stop
-                    Log.Debug("Thread aborted to stop read");
+                    // stream closed under us: the process is gone, stop reading
                 }
                 catch (Exception ex)
                 {
@@ -596,9 +613,10 @@ namespace SuperPutty.Scp
             {
                 if (this.Thread.IsAlive)
                 {
-                    // consider better way to know operation is done reading output...timed out join is ok but not great.
+                    // The process has exited, so the stream ends and the reader stops
+                    // by itself; don't wait for it forever. (Thread.Abort is not
+                    // supported on .NET Core / .NET 5+, and the thread is background.)
                     this.Thread.Join(2000);
-                    this.Thread.Abort();
                 }
 
                 lock (this)
@@ -615,10 +633,8 @@ namespace SuperPutty.Scp
 
             public void Dispose()
             {
-                if (this.Thread.IsAlive)
-                {
-                    this.Thread.Abort();
-                }
+                // Nothing to stop: the reader thread ends when the process's stream
+                // closes (the process is killed and disposed before this).
             }
         }
         #endregion

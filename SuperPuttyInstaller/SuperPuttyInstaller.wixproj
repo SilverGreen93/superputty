@@ -1,9 +1,15 @@
 <Project Sdk="WixToolset.Sdk/5.0.2">
   <PropertyGroup>
     <OutputName>SuperXPuTTYSetup</OutputName>
+    <!-- the app is built for win-x64 only -->
+    <InstallerPlatform>x64</InstallerPlatform>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DefineConstants>Debug</DefineConstants>
+  </PropertyGroup>
+  <!-- embedded PuTTY: built by SuperPutty.csproj whenever the putty sources are present -->
+  <PropertyGroup Condition="Exists('$(MSBuildThisFileDirectory)..\putty\CMakeLists.txt')">
+    <DefineConstants>$(DefineConstants);HavePuttyEmbed</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SuperPutty\SuperPutty.csproj">

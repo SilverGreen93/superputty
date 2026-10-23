@@ -16,6 +16,12 @@ namespace SuperPutty.Utils
 
         public static String GetExecutable(SessionData session)
         {
+            if (PuttyEmbed.Supports(session.Proto))
+            {
+                // runs in-process, see ApplicationPanel
+                return PuttyEmbed.DllPath;
+            }
+
             switch (session.Proto)
             {
                 case ConnectionProtocol.Mintty:
@@ -149,9 +155,21 @@ namespace SuperPutty.Utils
         /// </summary>
         public void StartStandalone()
         {
+            string executable = this.Executable;
+            if (executable == PuttyEmbed.DllPath)
+            {
+                // the embedded PuTTY can't run on its own: use the configured putty.exe
+                executable = TryParseEnvVars(SuperPuTTY.Settings.PuttyExe ?? "");
+                if (!File.Exists(executable))
+                {
+                    DarkModeForms.Messenger.MessageBox("Set the PuTTY executable in Tools > Options to open sessions in a separate window.",
+                        "PuTTY Not Found", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+                    return;
+                }
+            }
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
-                FileName = this.Executable,
+                FileName = executable,
                 Arguments = this.Args
             };
             if (this.WorkingDir != null && Directory.Exists(this.WorkingDir))

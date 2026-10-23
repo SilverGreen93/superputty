@@ -380,7 +380,7 @@ namespace SuperPutty
             {
                 SuperPuTTY.Settings.PuttyExe = textBoxPuttyLocation.Text;
             }
-            else
+            else if (!PuttyEmbed.IsAvailable)
             {
                 errors.Insert(0, "PuTTY is required to properly use this application.");
             }
@@ -585,7 +585,9 @@ namespace SuperPutty
         /// </summary>
         public static void PuttyCheck()
         {
-            if (String.IsNullOrEmpty(SuperPuTTY.Settings.PuttyExe) || SuperPuTTY.IsFirstRun || !File.Exists(SuperPuTTY.Settings.PuttyExe))
+            bool puttyExeMissing = !PuttyEmbed.IsAvailable &&
+                (String.IsNullOrEmpty(SuperPuTTY.Settings.PuttyExe) || !File.Exists(SuperPuTTY.Settings.PuttyExe));
+            if (SuperPuTTY.IsFirstRun || puttyExeMissing)
             {
                 // first time, try to import old putty settings from registry
                 SuperPuTTY.Settings.ImportFromRegistry();
@@ -596,7 +598,7 @@ namespace SuperPutty
                 }
             }
 
-            if (String.IsNullOrEmpty(SuperPuTTY.Settings.PuttyExe))
+            if (!PuttyEmbed.IsAvailable && String.IsNullOrEmpty(SuperPuTTY.Settings.PuttyExe))
             {
                 Messenger.MessageBox("Cannot find PuTTY executable. Please visit https://github.com/SilverGreen93/putty/releases to download a copy",
                     "PuTTY Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);

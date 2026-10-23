@@ -1,0 +1,4 @@
+[submodule "putty"]
+	path = putty
+	url = https://github.com/xl32/putty.git
+	branch = superxputty-embed
