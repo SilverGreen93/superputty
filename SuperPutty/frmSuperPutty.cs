@@ -107,6 +107,7 @@ namespace SuperPutty
                     DockPanel.Theme = new VS2015DarkTheme();
                     break;
             }
+            CenteredTabIcons.Apply(DockPanel.Theme);
 
             if (SuperPuTTY.Settings.InterfaceTheme < (int)InterfaceTheme.LightTheme)
             {
