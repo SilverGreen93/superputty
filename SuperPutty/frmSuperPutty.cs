@@ -1006,8 +1006,15 @@ namespace SuperPutty
 
         private void puTTYConfigurationToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Process p = new Process {StartInfo = {FileName = SuperPuTTY.Settings.PuttyExe}};
-            p.Start();
+            if (PuttyEmbed.IsAvailable)
+            {
+                PuttyEmbed.ShowConfig();
+            }
+            else
+            {
+                Process p = new Process {StartInfo = {FileName = SuperPuTTY.Settings.PuttyExe}};
+                p.Start();
+            }
 
             SuperPuTTY.ReportStatus("Lauched Putty Configuration");
         }

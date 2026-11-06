@@ -300,6 +300,7 @@
     <Compile Include="Utils\NativeMethods.cs" />
     <Compile Include="Utils\PortableSettingsProvider.cs" />
     <Compile Include="Utils\PropertyNotifiableObject.cs" />
+    <Compile Include="Utils\PuttyEmbed.cs" />
     <Compile Include="Utils\PuttyStartInfo.cs" />
     <Compile Include="Utils\SingleInstanceHelper.cs" />
     <Compile Include="Utils\SingletonToolWindowHelper.cs" />

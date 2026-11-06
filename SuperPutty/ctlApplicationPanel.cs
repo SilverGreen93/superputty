@@ -57,6 +57,12 @@ namespace SuperPutty
         private WindowActivator m_windowActivator = null;
         private SuperPutty.Data.ConnectionProtocol proto;
 
+        // Embedded PuTTY (putty-embed.dll): the terminal is our own child window
+        private bool m_Embedded;
+        private bool m_Closing;
+        private PuttyEmbed.TitleCallback m_OnTitle;   // referenced so the GC keeps them
+        private PuttyEmbed.ClosedCallback m_OnClosed;
+
         internal PuttyClosedCallback m_CloseCallback;
 
         /// <summary>Set the name of the application executable to launch</summary>
@@ -71,7 +77,10 @@ namespace SuperPutty
 DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public string ApplicationWorkingDirectory { get; set; }
 
-        public IntPtr AppWindowHandle { get { return this.m_AppWin; } } 
+        public IntPtr AppWindowHandle { get { return this.m_AppWin; } }
+
+        /// <summary>true if the terminal runs in-process as a child window (no external process)</summary>
+        public bool IsEmbedded { get { return this.m_Embedded; } }
         
         // Some windows need closed with WM_DESTROY others need closed with WM_CLOSE or they leave zombies
         public bool ApplicationCloseWithDestroy { get; set; }
@@ -160,6 +169,18 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 
         public bool ReFocusPuTTY(string caller)
         {
+            if (m_Embedded)
+            {
+                // Same window, same thread: plain keyboard focus, nothing to bring to front.
+                // Focus goes through this panel so WinForms tracks it as the active control
+                // (and restores it on Alt+Tab back); OnGotFocus hands it to the terminal.
+                if (this.ExternalProcessCaptured && NativeMethods.GetFocus() != this.m_AppWin)
+                {
+                    this.Focus();
+                }
+                return this.ExternalProcessCaptured;
+            }
+
             bool result = false;
             if (proto == Data.ConnectionProtocol.VNC ||
                 proto == Data.ConnectionProtocol.RDP)
@@ -425,6 +446,66 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         /*************************** End Hack to watch for windows focus change events ***************************************/
         #endregion
 
+        /// <summary>
+        /// Start the session in the embedded PuTTY as a child window of this panel.
+        /// No process, no window capture, no focus hooks: it is one window with SuperXPuTTY.
+        /// </summary>
+        private void CreateEmbeddedSession()
+        {
+            this.m_Embedded = true;
+            // focusable, so WinForms can make it the active control (see OnGotFocus)
+            this.SetStyle(ControlStyles.Selectable, true);
+            this.m_OnTitle = (ctx, title) => this.UpdateTitle();
+            this.m_OnClosed = (ctx, exitCode) =>
+            {
+                // The terminal window is gone (session ended, or we destroyed it)
+                this.m_AppWin = IntPtr.Zero;
+                if (!this.m_Closing && this.IsHandleCreated)
+                {
+                    // PuTTY is mid-teardown here: close the tab afterwards
+                    this.BeginInvoke(new MethodInvoker(() => this.m_CloseCallback?.Invoke(exitCode != 0)));
+                }
+            };
+
+            try
+            {
+                this.m_AppWin = PuttyEmbed.CreateSession(this.Handle, this.ApplicationParameters, this.m_OnTitle, this.m_OnClosed);
+                Log.InfoFormat("Embedded PuTTY session started, hwnd={0}", this.m_AppWin);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Log.WarnFormat("Could not start embedded PuTTY session: {0}", ex.Message);
+                Messenger.MessageBox("Could not start PuTTY session: " + ex.Message, "PuTTY command line error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Keys typed into an embedded terminal go to PuTTY untouched, as they did when it was a
+        /// separate window: no WinForms shortcuts, menu mnemonics or Tab/arrow navigation.
+        /// SuperXPuTTY's own shortcuts come from the low-level keyboard hook in frmSuperPutty.
+        /// The message is delivered here and reported as handled, because PuTTY translates
+        /// keys itself: the TranslateMessage of the WinForms loop would type every key twice.
+        /// </summary>
+        /// <summary>Focus given to this panel (tab switch, Alt+Tab back, click) belongs to the terminal</summary>
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+            if (this.m_Embedded && this.m_AppWin != IntPtr.Zero)
+            {
+                NativeMethods.SetFocus(this.m_AppWin);
+            }
+        }
+
+        public override bool PreProcessMessage(ref Message msg)
+        {
+            if (this.m_Embedded && msg.HWnd == this.m_AppWin && this.m_AppWin != IntPtr.Zero)
+            {
+                NativeMethods.SendMessage(msg.HWnd, (uint)msg.Msg, msg.WParam.ToInt64(), msg.LParam.ToInt64());
+                return true;
+            }
+            return base.PreProcessMessage(ref msg);
+        }
+
         #region Base Overrides
        
         /// <summary>
@@ -447,112 +528,119 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             {
                 m_Created = true;
                 m_AppWin = IntPtr.Zero;
-                try
+                if (PuttyEmbed.Supports(this.proto))
                 {
-                    if (!File.Exists(ApplicationName))
+                    this.CreateEmbeddedSession();
+                }
+                else
+                {
+                    try
                     {
-                        Messenger.MessageBox(ApplicationName + " not found in configured path, please go to Tools->Settings and set the correct path", "Application Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-                    m_Process = new Process
-                    {
-                        EnableRaisingEvents = true,
-                        StartInfo =
+                        if (!File.Exists(ApplicationName))
                         {
-                            FileName = ApplicationName,
-                            Arguments = ApplicationParameters,
-                            WindowStyle = ProcessWindowStyle.Maximized
+                            Messenger.MessageBox(ApplicationName + " not found in configured path, please go to Tools->Settings and set the correct path", "Application Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
                         }
-                    };
-
-                    if (!string.IsNullOrEmpty(this.ApplicationWorkingDirectory) &&
-                        Directory.Exists(this.ApplicationWorkingDirectory))
-                    {
-                        m_Process.StartInfo.WorkingDirectory = this.ApplicationWorkingDirectory;
-                    }
-
-                    m_Process.Exited += delegate {
-                        m_CloseCallback(true);
-                    };
-
-                    m_Process.Start();
-
-                    m_Process = this.WaitForTargetProcess(m_Process);
-                    if (this.IsWindowAppliesForInherit(m_Process.MainWindowHandle))
-                    {
-                        m_AppWin = m_Process.MainWindowHandle;
-
-                        if (IntPtr.Zero == m_AppWin)
+                        m_Process = new Process
                         {
-                            int poolInterval = this.GetMaxWindowPoolingTime();
-                            Log.WarnFormat("Unable to get handle for process on first try.{0}", LoopWaitForHandle ? "  Polling " + poolInterval + " s for handle." : "");
-                            if (LoopWaitForHandle)
+                            EnableRaisingEvents = true,
+                            StartInfo =
                             {
-                                DateTime startTime = DateTime.Now;
-                                while ((DateTime.Now - startTime).TotalSeconds < poolInterval)
-                                {
-                                    System.Threading.Thread.Sleep(50);
+                                FileName = ApplicationName,
+                                Arguments = ApplicationParameters,
+                                WindowStyle = ProcessWindowStyle.Maximized
+                            }
+                        };
 
-                                    // Refresh Process object's view of real process
-                                    m_Process.Refresh();
-                                    if (!this.IsWindowAppliesForInherit(m_Process.MainWindowHandle))
-                                        continue;
-                                    m_AppWin = m_Process.MainWindowHandle;
-                                    if (IntPtr.Zero != m_AppWin)
+                        if (!string.IsNullOrEmpty(this.ApplicationWorkingDirectory) &&
+                            Directory.Exists(this.ApplicationWorkingDirectory))
+                        {
+                            m_Process.StartInfo.WorkingDirectory = this.ApplicationWorkingDirectory;
+                        }
+
+                        m_Process.Exited += delegate {
+                            m_CloseCallback(true);
+                        };
+
+                        m_Process.Start();
+
+                        m_Process = this.WaitForTargetProcess(m_Process);
+                        if (this.IsWindowAppliesForInherit(m_Process.MainWindowHandle))
+                        {
+                            m_AppWin = m_Process.MainWindowHandle;
+
+                            if (IntPtr.Zero == m_AppWin)
+                            {
+                                int poolInterval = this.GetMaxWindowPoolingTime();
+                                Log.WarnFormat("Unable to get handle for process on first try.{0}", LoopWaitForHandle ? "  Polling " + poolInterval + " s for handle." : "");
+                                if (LoopWaitForHandle)
+                                {
+                                    DateTime startTime = DateTime.Now;
+                                    while ((DateTime.Now - startTime).TotalSeconds < poolInterval)
                                     {
-                                        Log.Info("Successfully found handle via polling " + (DateTime.Now - startTime).TotalMilliseconds + " ms");
-                                        break;
+                                        System.Threading.Thread.Sleep(50);
+
+                                        // Refresh Process object's view of real process
+                                        m_Process.Refresh();
+                                        if (!this.IsWindowAppliesForInherit(m_Process.MainWindowHandle))
+                                            continue;
+                                        m_AppWin = m_Process.MainWindowHandle;
+                                        if (IntPtr.Zero != m_AppWin)
+                                        {
+                                            Log.Info("Successfully found handle via polling " + (DateTime.Now - startTime).TotalMilliseconds + " ms");
+                                            break;
+                                        }
                                     }
                                 }
                             }
                         }
+                        else
+                        {
+                            b_AppWinFinal = false;
+                            this.CreateVirtWindow();
+                            bgWinTracker.DoWork += new DoWorkEventHandler(bgWinTracker_DoWork);
+                            bgWinTracker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgWinTracker_Done);
+                            bgWinTracker.RunWorkerAsync();
+                        }
                     }
-                    else
+                    catch (InvalidOperationException ex)
                     {
-                        b_AppWinFinal = false;
-                        this.CreateVirtWindow();
-                        bgWinTracker.DoWork += new DoWorkEventHandler(bgWinTracker_DoWork);
-                        bgWinTracker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bgWinTracker_Done);
-                        bgWinTracker.RunWorkerAsync();
-                    }
-                }
-                catch (InvalidOperationException ex)
-                {
-                    /* Possible Causes:
-                     * No file name was specified in the Process component's StartInfo.
-                     * -or-
-                     * The ProcessStartInfo.UseShellExecute member of the StartInfo property is true while ProcessStartInfo.RedirectStandardInput, 
-                     * ProcessStartInfo.RedirectStandardOutput, or ProcessStartInfo.RedirectStandardError is true. 
-                     */
-                    Messenger.MessageBox(ex.Message, "Invalid Operation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    throw;
-                }
-                catch (Win32Exception ex)
-                {
-                    /*
-                     * Checks are elsewhere to ensure these don't occur, but incase they do we're gonna bail with a nasty exception
-                     * which will hopefully send users kicking and screaming at me to fix this (And hopefully they will include a 
-                     * stacktrace!)
-                     */
-                    if (ex.NativeErrorCode == NativeMethods.ERROR_ACCESS_DENIED)
-                    {
+                        /* Possible Causes:
+                         * No file name was specified in the Process component's StartInfo.
+                         * -or-
+                         * The ProcessStartInfo.UseShellExecute member of the StartInfo property is true while ProcessStartInfo.RedirectStandardInput, 
+                         * ProcessStartInfo.RedirectStandardOutput, or ProcessStartInfo.RedirectStandardError is true. 
+                         */
+                        Messenger.MessageBox(ex.Message, "Invalid Operation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         throw;
                     }
-                    else if (ex.NativeErrorCode == NativeMethods.ERROR_FILE_NOT_FOUND)
+                    catch (Win32Exception ex)
                     {
-                        throw;
+                        /*
+                         * Checks are elsewhere to ensure these don't occur, but incase they do we're gonna bail with a nasty exception
+                         * which will hopefully send users kicking and screaming at me to fix this (And hopefully they will include a 
+                         * stacktrace!)
+                         */
+                        if (ex.NativeErrorCode == NativeMethods.ERROR_ACCESS_DENIED)
+                        {
+                            throw;
+                        }
+                        else if (ex.NativeErrorCode == NativeMethods.ERROR_FILE_NOT_FOUND)
+                        {
+                            throw;
+                        }
                     }
-                }
 
-                if (SuperPuTTY.PuTTYAppName + " Command Line Error" == this.m_Process.MainWindowTitle)
-                {
-                    // dont' try to capture or manipulate the window
-                    Log.WarnFormat("Error while creating putty session: title={0}, handle={1}.  Abort capture window", this.m_Process.MainWindowTitle, this.m_AppWin);
-                    Messenger.MessageBox("Could not start putty session: Arguments passed to commandline are invalid.", "PuTTY command line error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    this.m_AppWin = IntPtr.Zero;
-                }
+                    if (SuperPuTTY.PuTTYAppName + " Command Line Error" == this.m_Process.MainWindowTitle)
+                    {
+                        // dont' try to capture or manipulate the window
+                        Log.WarnFormat("Error while creating putty session: title={0}, handle={1}.  Abort capture window", this.m_Process.MainWindowTitle, this.m_AppWin);
+                        Messenger.MessageBox("Could not start putty session: Arguments passed to commandline are invalid.", "PuTTY command line error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        this.m_AppWin = IntPtr.Zero;
+                    }
                 
-                this.AttachToWindow();
+                    this.AttachToWindow();
+                }
             }
 
             if (this.Visible && this.m_Created && this.b_AppWinFinal && this.ExternalProcessCaptured)
@@ -576,6 +664,20 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         /// <param name="e"></param>
         protected override void OnHandleDestroyed(EventArgs e)
         {
+            if (this.m_Embedded)
+            {
+                // Our own child: destroying it ends the session. Don't report that back as
+                // PuTTY closing the tab, the tab is already closing.
+                this.m_Closing = true;
+                if (this.m_AppWin != IntPtr.Zero)
+                {
+                    NativeMethods.DestroyWindow(this.m_AppWin);
+                    this.m_AppWin = IntPtr.Zero;
+                }
+                base.OnHandleDestroyed(e);
+                return;
+            }
+
             if (this.ExternalProcessCaptured)
             {
                 // Send WM_DESTROY instead of WM_CLOSE, so that the Client doesn't

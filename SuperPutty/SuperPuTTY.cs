@@ -808,7 +808,11 @@ namespace SuperPutty
             {
                 if (isFirstRun == null)
                 {
-                    isFirstRun = string.IsNullOrEmpty(Settings.PuttyExe);
+                    // With the embedded PuTTY no putty.exe is needed; the setup dialog
+                    // always sets the settings folder, so that marks setup as done.
+                    isFirstRun = PuttyEmbed.IsAvailable
+                        ? string.IsNullOrEmpty(Settings.SettingsFolder)
+                        : string.IsNullOrEmpty(Settings.PuttyExe);
                 }
                 return isFirstRun.Value;
             }

@@ -303,6 +303,16 @@ namespace SuperPutty
         {
             if (!this.AppPanel.ExternalProcessCaptured) { return; }
 
+            if (this.AppPanel.IsEmbedded)
+            {
+                // Plain keyboard focus on our own child window: no retries needed
+                if (this.InvokeRequired)
+                    this.BeginInvoke(new Action(() => this.AppPanel.ReFocusPuTTY(caller)));
+                else
+                    this.AppPanel.ReFocusPuTTY(caller);
+                return;
+            }
+
             bool success = false;
             for (int i = 0; i < RefocusAttempts; i++)
             {
@@ -479,6 +489,15 @@ namespace SuperPutty
         internal void SendPuttyCommand(uint command)
         {
             Log.DebugFormat("Sending Putty Command: command={0}", command);
+
+            if (this.AppPanel.IsEmbedded)
+            {
+                // Same thread as the terminal: focus it, then let PuTTY run the command
+                // from the message loop (commands like Change Settings open a modal dialog)
+                SetFocusToChildApplication("SendPuttyCommand");
+                NativeMethods.PostMessage(AppPanel.AppWindowHandle, (uint)NativeMethods.WM.SYSCOMMAND, command, 0);
+                return;
+            }
 
             ThreadPool.QueueUserWorkItem(delegate
             {
