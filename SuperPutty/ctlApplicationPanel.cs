@@ -527,6 +527,21 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             {
                 Log.WarnFormat("Could not start embedded PuTTY session: {0}", ex.Message);
                 Messenger.MessageBox("Could not start PuTTY session: " + ex.Message, "PuTTY command line error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                // Nothing to show: close the tab, like the old code did when the PuTTY process
+                // it started exited right away. Queued, because we are still inside the code
+                // opening this tab - closing it here would re-enter Show().
+                this.m_SessionClosed = true;
+                if (this.IsHandleCreated && !this.IsDisposed)
+                {
+                    this.BeginInvoke(new MethodInvoker(() =>
+                    {
+                        if (!this.m_Closing && !this.IsDisposed)
+                        {
+                            this.m_CloseCallback?.Invoke(true);
+                        }
+                    }));
+                }
             }
         }
 
