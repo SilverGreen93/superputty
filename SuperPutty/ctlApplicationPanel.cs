@@ -61,8 +61,16 @@ namespace SuperPutty
         private bool m_Embedded;
         private bool m_Closing;
         private bool m_SessionClosed;         // terminal window destroyed, ignore later callbacks
-        private PuttyEmbed.TitleCallback m_OnTitle;   // referenced so the GC keeps them
+        private PuttyEmbed.TitleCallback m_OnTitle;   // also parked in m_EmbeddedCallbacks
         private PuttyEmbed.ClosedCallback m_OnClosed;
+
+        // The DLL stores raw pointers to these callbacks and calls them from its own windows.
+        // The marshaler only keeps a delegate alive for the duration of the call that passes it,
+        // so a session whose panel has been collected would call back into a freed delegate and
+        // take the process down. Park them here until the panel is disposed, which is after the
+        // terminal window is gone and on_closed has run (WM_DESTROY in the DLL, its last call).
+        // Only ever touched from the UI thread, like the callbacks themselves.
+        private static readonly List<object> m_EmbeddedCallbacks = new List<object>();
 
         internal PuttyClosedCallback m_CloseCallback;
 
@@ -125,6 +133,16 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             });
             this.m_hWinEventHooks.Clear();
             this.lpfnWinEventProcs.Clear();
+
+            if (this.m_Embedded)
+            {
+                // OnHandleDestroyed has already destroyed the terminal window, so the DLL has
+                // made its last callback (on_closed) and will not use these pointers again.
+                m_EmbeddedCallbacks.Remove(this.m_OnTitle);
+                m_EmbeddedCallbacks.Remove(this.m_OnClosed);
+                this.m_OnTitle = null;
+                this.m_OnClosed = null;
+            }
         }
 
         void SuperPuTTY_LayoutChanged(object sender, Data.LayoutChangedEventArgs e)
@@ -517,6 +535,10 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
                     catch (InvalidOperationException) { }
                 }
             };
+
+            // keep them alive for the DLL from here on, whatever happens to this panel
+            m_EmbeddedCallbacks.Add(this.m_OnTitle);
+            m_EmbeddedCallbacks.Add(this.m_OnClosed);
 
             try
             {
