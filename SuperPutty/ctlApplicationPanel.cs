@@ -499,10 +499,22 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
                 // The terminal window is gone (session ended, or we destroyed it)
                 this.m_AppWin = IntPtr.Zero;
                 this.m_SessionClosed = true;
-                if (!this.m_Closing && this.IsHandleCreated)
+                if (!this.m_Closing && this.IsHandleCreated && !this.IsDisposed)
                 {
                     // PuTTY is mid-teardown here: close the tab afterwards
-                    this.BeginInvoke(new MethodInvoker(() => this.m_CloseCallback?.Invoke(exitCode != 0)));
+                    try
+                    {
+                        this.BeginInvoke(new MethodInvoker(() =>
+                        {
+                            // check again, the tab may have been closed while this was queued
+                            if (!this.m_Closing && !this.IsDisposed)
+                            {
+                                this.m_CloseCallback?.Invoke(exitCode != 0);
+                            }
+                        }));
+                    }
+                    // BeginInvoke itself can fail if the handle goes away between the check and the call
+                    catch (InvalidOperationException) { }
                 }
             };
 
@@ -598,7 +610,7 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
                         }
 
                         m_Process.Exited += delegate {
-                            m_CloseCallback(true);
+                            m_CloseCallback?.Invoke(true);
                         };
 
                         m_Process.Start();
