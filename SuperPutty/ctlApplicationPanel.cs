@@ -545,8 +545,11 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
                 this.m_AppWin = PuttyEmbed.CreateSession(this.Handle, this.ApplicationParameters, this.m_OnTitle, this.m_OnClosed);
                 Log.InfoFormat("Embedded PuTTY session started, hwnd={0}", this.m_AppWin);
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex) when (ex is InvalidOperationException || ex is DllNotFoundException || ex is EntryPointNotFoundException)
             {
+                // the second pair is what the runtime throws when the dll is on disk but cannot
+                // actually be used; PuttyEmbed.IsAvailable filters most of that out, this is the
+                // rest of it
                 Log.WarnFormat("Could not start embedded PuTTY session: {0}", ex.Message);
                 Messenger.MessageBox("Could not start PuTTY session: " + ex.Message, "PuTTY command line error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
