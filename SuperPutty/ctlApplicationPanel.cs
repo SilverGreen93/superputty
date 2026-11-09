@@ -114,7 +114,12 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             this.m_windowActivator = (WindowActivator)Activator.CreateInstance(Type.GetType(typeName));
             //this.m_windowActivator = new SetFGCombinedWindowActivator();
             SuperPuTTY.Settings.SettingsSaving += Settings_SettingsSaving;
-            SuperPuTTY.WindowEvents.SystemSwitch += new EventHandler<GlobalWindowEventArgs>(OnSystemSwitch);
+            // same test as OnVisibleChanged, so a panel that embeds PuTTY never subscribes:
+            // its terminal is our own child window, there is no Alt+Tab switch to follow
+            if (!PuttyEmbed.Supports(this.proto))
+            {
+                SuperPuTTY.WindowEvents.SystemSwitch += new EventHandler<GlobalWindowEventArgs>(OnSystemSwitch);
+            }
         }
 
         void Settings_SettingsSaving(object sender, CancelEventArgs e)
@@ -251,14 +256,20 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
                 if (this.proto == SuperPutty.Data.ConnectionProtocol.VNC)
                     lStyle |= NativeMethods.WS_HSCROLL | NativeMethods.WS_VSCROLL;
                 NativeMethods.SetWindowLong(m_AppWin, NativeMethods.GWL_STYLE, lStyle);
-                NativeMethods.WinEventDelegate lpfnWinEventProc = new NativeMethods.WinEventDelegate(WinEventProc);
-                this.lpfnWinEventProcs.Add(lpfnWinEventProc);
-                uint eventType = (uint)NativeMethods.WinEvents.EVENT_OBJECT_NAMECHANGE;
-                this.m_hWinEventHooks.Add(NativeMethods.SetWinEventHook(eventType, eventType, IntPtr.Zero, lpfnWinEventProc, (uint)m_Process.Id, 0, NativeMethods.WINEVENT_OUTOFCONTEXT));
-                if ((lStyle & NativeMethods.WS_DLGFRAME) == 0)
+
+                // no focus hooks for an embedded terminal: it has no process to watch and its
+                // window is already in ours, so the window events below would only misfire
+                if (!this.m_Embedded)
                 {
-                    eventType = (uint)NativeMethods.WinEvents.EVENT_SYSTEM_FOREGROUND;
+                    NativeMethods.WinEventDelegate lpfnWinEventProc = new NativeMethods.WinEventDelegate(WinEventProc);
+                    this.lpfnWinEventProcs.Add(lpfnWinEventProc);
+                    uint eventType = (uint)NativeMethods.WinEvents.EVENT_OBJECT_NAMECHANGE;
                     this.m_hWinEventHooks.Add(NativeMethods.SetWinEventHook(eventType, eventType, IntPtr.Zero, lpfnWinEventProc, (uint)m_Process.Id, 0, NativeMethods.WINEVENT_OUTOFCONTEXT));
+                    if ((lStyle & NativeMethods.WS_DLGFRAME) == 0)
+                    {
+                        eventType = (uint)NativeMethods.WinEvents.EVENT_SYSTEM_FOREGROUND;
+                        this.m_hWinEventHooks.Add(NativeMethods.SetWinEventHook(eventType, eventType, IntPtr.Zero, lpfnWinEventProc, (uint)m_Process.Id, 0, NativeMethods.WINEVENT_OUTOFCONTEXT));
+                    }
                 }
             }
             else
