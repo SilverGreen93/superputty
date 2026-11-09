@@ -566,7 +566,7 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         {
             if (this.m_Embedded && msg.HWnd == this.m_AppWin && this.m_AppWin != IntPtr.Zero)
             {
-                NativeMethods.SendMessage(msg.HWnd, (uint)msg.Msg, msg.WParam.ToInt64(), msg.LParam.ToInt64());
+                NativeMethods.SendMessage(msg.HWnd, (uint)msg.Msg, msg.WParam, msg.LParam);
                 return true;
             }
             return base.PreProcessMessage(ref msg);
@@ -750,9 +750,9 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
                 // ask in the Background whether the session shall be closed.
                 // Otherwise an annoying beep is generated everytime a terminal session is closed.
                 if (this.ApplicationCloseWithDestroy) {
-                    NativeMethods.PostMessage(m_AppWin, NativeMethods.WM_DESTROY, 0, 0);
+                    NativeMethods.PostMessage(m_AppWin, NativeMethods.WM_DESTROY, IntPtr.Zero, IntPtr.Zero);
                 } else {
-                    NativeMethods.PostMessage(m_AppWin, NativeMethods.WM_CLOSE, 0, 0);
+                    NativeMethods.PostMessage(m_AppWin, NativeMethods.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
                 }
 
                 System.Threading.Thread.Sleep(ClosePuttyWaitTimeMs);

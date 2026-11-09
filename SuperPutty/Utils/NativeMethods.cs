@@ -1143,8 +1143,16 @@ namespace SuperPutty.Utils
         [DllImport("user32.dll", EntryPoint = "PostMessageA", SetLastError = true)]
         public static extern bool PostMessage(IntPtr hWnd, uint Msg, long wParam, long lParam);
 
+        // full width parameters, for messages posted to a window we do not own
+        [DllImport("user32.dll", EntryPoint = "PostMessageW", SetLastError = true)]
+        public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
         [DllImport("user32.dll")]
         public static extern int SendMessage(IntPtr hWnd, uint Msg, long wParam, long lParam);
+
+        // full width parameters, for forwarding messages whose wParam/lParam carry data
+        [DllImport("user32.dll")]
+        public static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
         [DllImport("user32.dll")]
         private static extern int FindWindow(string className, string windowText);
