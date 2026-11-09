@@ -7,7 +7,11 @@
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/SilverGreen93/superputty/" />
     <Property Id="ARPNOREPAIR" Value="1" />
 
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />    
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <!-- SuperXPuTTY runs on the .NET 10 Desktop Runtime (x64), installed separately -->
+    <netfx:DotNetCompatibilityCheck Property="DOTNETDESKTOP10CHECK" RuntimeType="desktop" Platform="x64" Version="10.0.0" RollForward="latestMinor" />
+    <Launch Condition="Installed OR DOTNETDESKTOP10CHECK=&quot;0&quot;" Message="[ProductName] requires the .NET 10 Desktop Runtime (x64). Download it from https://dotnet.microsoft.com/download/dotnet/10.0 and run this setup again." />
       <Media Id="1" Cabinet="Cab1.cab" EmbedCab="yes" />
     
     <Feature Id="ProductFeature" Title="SuperXPuTTY" Level="1">
@@ -29,11 +33,11 @@
     </UI>
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch SuperXPuTTY" />    
     <Property Id="WixShellExecTarget" Value="[#ProductExe]" />
-    <CustomAction Id="LaunchApplication" DllEntry="WixShellExec" Impersonate="yes" BinaryRef="Wix4UtilCA_X86" />
+    <CustomAction Id="LaunchApplication" DllEntry="WixShellExec" Impersonate="yes" BinaryRef="Wix4UtilCA_X64" />
   </Package>
 
   <Fragment>
-      <StandardDirectory Id="ProgramFilesFolder">
+      <StandardDirectory Id="ProgramFiles64Folder">
         <Directory Id="INSTALLFOLDER" Name="SuperXPuTTY">
           <Directory Id="INSTALLTHEMEFOLDER" Name="themes">
             <Directory Id="INSTALLDEFAULTTHEME" Name="default">
@@ -64,13 +68,28 @@
 
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <!-- .NET 10: SuperXPuTTY.exe is the native launcher, the code is in SuperXPuTTY.dll;
+           no ngen (.NET Framework only) -->
       <Component Id="ProductExe">
-        <File Id="ProductExe" Source="$(var.SuperPutty.TargetPath)">
-          <netfx:NativeImage Id="ngen_ProductExe" Platform="all" Priority="3" />
-        </File>
+        <File Id="ProductExe" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.exe" />
       </Component>
-      <Component Id="ProductExeConfig">
-        <File Id="___var.SuperPutty.TargetPath_.config" Source="$(var.SuperPutty.TargetPath).config" />
+      <Component Id="ProductDll">
+        <File Id="ProductDll" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.dll" />
+      </Component>
+      <Component Id="ProductDllConfig">
+        <File Id="ProductDllConfig" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.dll.config" />
+      </Component>
+      <Component Id="ProductRuntimeConfig">
+        <File Id="ProductRuntimeConfig" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.runtimeconfig.json" />
+      </Component>
+      <Component Id="ProductDeps">
+        <File Id="ProductDeps" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.deps.json" />
+      </Component>
+      <Component Id="ProductLibSystemWebAdapters">
+        <File Id="Microsoft.AspNetCore.SystemWebAdapters.dll" Source="$(var.SuperPutty.TargetDir)Microsoft.AspNetCore.SystemWebAdapters.dll" />
+      </Component>
+      <Component Id="ProductLibRuntimeCaching">
+        <File Id="System.Runtime.Caching.dll" Source="$(var.SuperPutty.TargetDir)System.Runtime.Caching.dll" />
       </Component>
       <Component Id="ProductLibLogging">
         <File Id="log4net.dll" Source="$(var.SuperPutty.TargetDir)\log4net.dll" />

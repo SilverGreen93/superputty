@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -53,6 +54,7 @@ namespace DarkModeForms
 			g.Dispose();
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public int Minimum
 		{
 			get
@@ -87,6 +89,7 @@ namespace DarkModeForms
 			}
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public int Maximum
 		{
 			get
@@ -115,6 +118,7 @@ namespace DarkModeForms
 			}
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public int Value
 		{
 			get
@@ -175,6 +179,7 @@ namespace DarkModeForms
 			}
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public Color ProgressBarColor
 		{
 			get

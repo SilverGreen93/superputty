@@ -23,17 +23,20 @@ namespace SuperPutty.Gui
             }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string ItemName {
             get { return this.txtItemName.Text; }
             set { this.txtItemName.Text = value; }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string DetailName
         {
             get { return this.labelDetailName.Text; }
             set { this.labelDetailName.Text = value; }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ItemNameValidationHandler ItemNameValidator { get; set; }
 
         private void btnOK_Click(object sender, EventArgs e)

@@ -116,8 +116,19 @@ namespace SuperPutty
                     form.Icon = new Icon(iconFile);
                 }
 
-                // FieldInfo field = typeof(Form).GetField("defaultIcon", BindingFlags.NonPublic | BindingFlags.Static);
-                // field.SetValue(null, form.Icon);
+                // No public API for the icon of forms without their own: set WinForms'
+                // private default (s_defaultIcon on .NET Core, defaultIcon on .NET Framework)
+                FieldInfo field =
+                    typeof(Form).GetField("s_defaultIcon", BindingFlags.NonPublic | BindingFlags.Static) ??
+                    typeof(Form).GetField("defaultIcon", BindingFlags.NonPublic | BindingFlags.Static);
+                if (field != null)
+                {
+                    field.SetValue(null, form.Icon);
+                }
+                else
+                {
+                    Log.Warn("Could not set default icon: WinForms default icon field not found");
+                }
             }
             catch (Exception ex)
             {

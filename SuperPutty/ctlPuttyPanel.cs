@@ -443,9 +443,12 @@ namespace SuperPutty
             }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public SessionData Session { get; set; }
         public ApplicationPanel AppPanel { get; private set; }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ctlPuttyPanel previousPanel { get; set; }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public ctlPuttyPanel nextPanel { get; set; }
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
@@ -494,12 +497,14 @@ namespace SuperPutty
             });
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public bool AcceptCommands
         {
             get { return this.acceptCommandsToolStripMenuItem.Checked;  }
             set { this.acceptCommandsToolStripMenuItem.Checked = value; }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string TextOverride { get; set; }
 
         private void copyHostNameToolStripMenuItem_Click(object sender, EventArgs e)

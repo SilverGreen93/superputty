@@ -44,6 +44,7 @@ namespace SuperPutty.Gui
 
 
         [Browsable(true)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public Color ProgressBarColor
         {
             get
