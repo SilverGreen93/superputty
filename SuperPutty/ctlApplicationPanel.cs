@@ -60,6 +60,7 @@ namespace SuperPutty
         // Embedded PuTTY (putty-embed.dll): the terminal is our own child window
         private bool m_Embedded;
         private bool m_Closing;
+        private bool m_SessionClosed;         // terminal window destroyed, ignore later callbacks
         private PuttyEmbed.TitleCallback m_OnTitle;   // referenced so the GC keeps them
         private PuttyEmbed.ClosedCallback m_OnClosed;
 
@@ -413,24 +414,61 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 
         private void UpdateTitle()
         {
+            if (this.m_AppWin == IntPtr.Zero)
+            {
+                // no window to ask: the session has not started yet, or it is already closed
+                return;
+            }
             int length = NativeMethods.SendMessage(m_AppWin, NativeMethods.WM_GETTEXTLENGTH, 0, 0) + 1;
             StringBuilder sb = new StringBuilder(length + 1);
             NativeMethods.SendMessage(m_AppWin, NativeMethods.WM_GETTEXT, sb.Capacity, sb);
-            string controlText = sb.ToString();
-            string parentText = ((ctlPuttyPanel)this.Parent).TextOverride;
+            this.SetTabText(sb.ToString());
+        }
+
+        /// <summary>
+        /// Put a terminal title on the tab, following the TabTextBehavior setting.
+        /// </summary>
+        /// <param name="controlText">Title of the terminal window</param>
+        private void SetTabText(string controlText)
+        {
+            ctlPuttyPanel parent = this.Parent as ctlPuttyPanel;
+            if (parent == null || this.IsDisposed)
+            {
+                // tab is gone, nothing to rename
+                return;
+            }
+            string parentText = parent.TextOverride;
 
             switch ((SuperPutty.frmSuperPutty.TabTextBehavior)Enum.Parse(typeof(frmSuperPutty.TabTextBehavior), SuperPuTTY.Settings.TabTextBehavior))
             {
                 case frmSuperPutty.TabTextBehavior.Static:
-                    this.Parent.Text = parentText;
+                    parent.Text = parentText;
                     break;
                 case frmSuperPutty.TabTextBehavior.Dynamic:
-                    this.Parent.Text = controlText;
+                    parent.Text = controlText;
                     break;
                 case frmSuperPutty.TabTextBehavior.Mixed:
-                    this.Parent.Text = parentText + ": " + controlText;
+                    parent.Text = parentText + ": " + controlText;
                     break;
             }
+        }
+
+        /// <summary>
+        /// Title callback from the embedded PuTTY (wintw_set_title in the DLL). It runs on this
+        /// thread, but the first one comes while putty_session_create() is still running, so
+        /// m_AppWin is not set yet, and one can also arrive after the terminal window was
+        /// destroyed. Read the title from the argument, never from the window, and drop the
+        /// callbacks that come after the session closed.
+        /// </summary>
+        /// <param name="ctx">Not used</param>
+        /// <param name="title">New terminal title</param>
+        void OnEmbeddedTitle(IntPtr ctx, string title)
+        {
+            if (this.m_SessionClosed)
+            {
+                return;
+            }
+            this.SetTabText(title ?? "");
         }
 
         public event EventHandler InnerApplicationFocused;
@@ -455,11 +493,12 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             this.m_Embedded = true;
             // focusable, so WinForms can make it the active control (see OnGotFocus)
             this.SetStyle(ControlStyles.Selectable, true);
-            this.m_OnTitle = (ctx, title) => this.UpdateTitle();
+            this.m_OnTitle = this.OnEmbeddedTitle;
             this.m_OnClosed = (ctx, exitCode) =>
             {
                 // The terminal window is gone (session ended, or we destroyed it)
                 this.m_AppWin = IntPtr.Zero;
+                this.m_SessionClosed = true;
                 if (!this.m_Closing && this.IsHandleCreated)
                 {
                     // PuTTY is mid-teardown here: close the tab afterwards
