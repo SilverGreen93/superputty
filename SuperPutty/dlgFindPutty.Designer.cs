@@ -335,7 +335,7 @@
             this.checkSingleInstanceMode.Name = "checkSingleInstanceMode";
             this.checkSingleInstanceMode.Size = new System.Drawing.Size(345, 24);
             this.checkSingleInstanceMode.TabIndex = 24;
-            this.checkSingleInstanceMode.Text = "Only allow single instance of SuperPuTTY to run";
+            this.checkSingleInstanceMode.Text = "Only allow single instance of SuperXPuTTY to run";
             this.toolTip.SetToolTip(this.checkSingleInstanceMode, "If checked, new sessions launched from the command line are opened in an existing" +
         " instance");
             this.checkSingleInstanceMode.UseVisualStyleBackColor = true;
