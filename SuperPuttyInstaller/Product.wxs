@@ -85,6 +85,11 @@
       <Component Id="ProductDeps">
         <File Id="ProductDeps" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.deps.json" />
       </Component>
+      <!-- embedded PuTTY, built by the SuperPutty project from the putty submodule;
+           without it SSH/Telnet/Rlogin/Raw/Serial sessions fall back to external PuTTY -->
+      <Component Id="ProductPuttyEmbed">
+        <File Id="ProductPuttyEmbedDll" Source="$(var.SuperPutty.TargetDir)putty-embed.dll" />
+      </Component>
       <Component Id="ProductLibSystemWebAdapters">
         <File Id="Microsoft.AspNetCore.SystemWebAdapters.dll" Source="$(var.SuperPutty.TargetDir)Microsoft.AspNetCore.SystemWebAdapters.dll" />
       </Component>

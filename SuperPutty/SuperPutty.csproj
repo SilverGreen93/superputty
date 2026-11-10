@@ -88,4 +88,35 @@
       <Link>themes\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </None>
   </ItemGroup>
+
+  <!-- embedded PuTTY: putty-embed.dll is built from the putty submodule with CMake
+       and must sit next to SuperXPuTTY.exe, see Utils\PuttyEmbed.cs -->
+  <PropertyGroup>
+    <PuttyDir>$(MSBuildThisFileDirectory)..\putty\</PuttyDir>
+    <PuttyBuildDir>$(PuttyDir)build\</PuttyBuildDir>
+    <!-- set to false to skip the native build (a putty-embed.dll in the output is then
+         simply absent and SSH/Telnet/Rlogin/Raw/Serial fall back to external PuTTY) -->
+    <BuildPuttyEmbed Condition=" '$(BuildPuttyEmbed)' == '' ">true</BuildPuttyEmbed>
+  </PropertyGroup>
+  <Target Name="BuildPuttyEmbed" BeforeTargets="CopyFilesToOutputDirectory"
+          Condition=" '$(BuildPuttyEmbed)' == 'true' ">
+    <Error Condition="!Exists('$(PuttyDir)CMakeLists.txt')"
+           Text="The putty submodule is not checked out; run git submodule update --init to build putty-embed.dll, or build with -p:BuildPuttyEmbed=false" />
+    <!-- always run: cmake does its own incrementality, and the copy must still happen
+         when only the output folder was cleaned -->
+    <!-- first configure: cmake -S . -B build -->
+    <Exec Command="cmake -S . -B build" WorkingDirectory="$(PuttyDir)"
+          Condition="!Exists('$(PuttyBuildDir)CMakeCache.txt')" />
+    <!-- then build that directory, Release config, putty-embed target -->
+    <Exec Command="cmake --build build --config Release --target putty-embed" WorkingDirectory="$(PuttyDir)" />
+    <!-- the dll lands directly under build\ with the Visual Studio generator and under
+         build\windows\ with Ninja/Makefiles, so glob instead of hard-coding one layout -->
+    <ItemGroup>
+      <PuttyEmbedDll Include="$(PuttyBuildDir)**\putty-embed.dll" />
+    </ItemGroup>
+    <Error Condition=" '@(PuttyEmbedDll)' == '' "
+           Text="cmake built the putty-embed target but no putty-embed.dll was found under $(PuttyBuildDir)" />
+    <Copy SourceFiles="@(PuttyEmbedDll)" DestinationFolder="$(TargetDir)"
+          SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" />
+  </Target>
 </Project>
