@@ -91,7 +91,9 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         /// <summary>true if the terminal runs in-process as a child window (no external process)</summary>
         public bool IsEmbedded { get { return this.m_Embedded; } }
         
-        // Some windows need closed with WM_DESTROY others need closed with WM_CLOSE or they leave zombies
+        [Category("Behavior")]
+        [Description("Specifies whether the application should be closed with WM_DESTROY instead of WM_CLOSE.")]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public bool ApplicationCloseWithDestroy { get; set; }
 
         #endregion
@@ -448,7 +450,7 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
                 // no window to ask: the session has not started yet, or it is already closed
                 return;
             }
-            int length = NativeMethods.SendMessage(m_AppWin, NativeMethods.WM_GETTEXTLENGTH, 0, 0) + 1;
+            int length = (int)NativeMethods.SendMessage(m_AppWin, NativeMethods.WM_GETTEXTLENGTH, 0, 0) + 1;
             StringBuilder sb = new StringBuilder(length + 1);
             NativeMethods.SendMessage(m_AppWin, NativeMethods.WM_GETTEXT, sb.Capacity, sb);
             this.SetTabText(sb.ToString());

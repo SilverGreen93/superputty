@@ -1,67 +1,146 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Pipes;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using SuperPutty.Data;
-using System.Runtime.Remoting.Channels.Ipc;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting;
 using log4net;
-using System.Runtime.Remoting.Messaging;
 
 namespace SuperPutty.Utils
 {
-    public class SingleInstanceHelper : MarshalByRefObject
+    public class SingleInstanceHelper
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(SingleInstanceHelper));
 
-        public const string ChannelName = "SuperXPuTTY";
-        public const string SingleInstanceServiceName = "SingleInstance";
+        /* Named pipes live in a machine wide namespace, so a fixed name is shared by
+         * every terminal services session on the box.  Scope it to user and session so
+         * that instances in different sessions neither talk to each other nor fight
+         * over the pipe. */
+        public static readonly string PipeName = GetPipeName();
 
-        public static void RegisterRemotingService()
+        /// <summary>Upper bound on the number of arguments accepted from a client</summary>
+        private const int MaxArgs = 1000;
+
+        private static string GetPipeName()
         {
+            string scope = string.Format("{0}_{1}_{2}",
+                Environment.UserDomainName, Environment.UserName, Process.GetCurrentProcess().SessionId);
+            StringBuilder name = new StringBuilder("SuperXPuTTYPipe_");
+            foreach (char c in scope)
+            {
+                name.Append(char.IsLetterOrDigit(c) || c == '_' || c == '-' || c == '.' ? c : '_');
+            }
+            return name.ToString();
+        }
+
+        // Start pipe server for single instance
+        public static void StartPipeServer(Action<string[]> onArgsReceived)
+        {
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    try
+                    {
+                        HandleOneConnection(onArgsReceived);
+                    }
+                    catch (Exception ex)
+                    {
+                        /* A broken client, a truncated message or a callback that throws
+                         * must not end the listener, otherwise every later "open in
+                         * existing instance" is silently lost. */
+                        Log.Warn("Error while handling single instance pipe connection", ex);
+                        Thread.Sleep(1000);
+                    }
+                }
+            });
+        }
+
+        /// <summary>
+        /// Waits for one client, hands over its arguments and closes the pipe.
+        /// A new server stream is created per connection: disposing the reader used to
+        /// dispose the pipe as well, so the following Disconnect() threw
+        /// ObjectDisposedException and the listener died after the first launch.
+        /// </summary>
+        private static void HandleOneConnection(Action<string[]> onArgsReceived)
+        {
+            using (var server = new NamedPipeServerStream(PipeName, PipeDirection.In))
+            {
+                server.WaitForConnection();
+
+                // leaveOpen: the using block over the server closes the pipe, not the reader
+                using (var reader = new BinaryReader(server, Encoding.UTF8, true))
+                {
+                    string[] args = ReadArgs(reader);
+                    if (args != null)
+                    {
+                        Log.InfoFormat("Received remote Run command: [{0}]", string.Join(" ", args));
+                        onArgsReceived?.Invoke(args);
+                    }
+                }
+            }
+        }
+
+        /// <summary>Read the length prefixed arguments sent by <see cref="SendArgsToExistingInstance"/></summary>
+        private static string[] ReadArgs(BinaryReader reader)
+        {
+            int count = reader.ReadInt32();
+            if (count <= 0 || count > MaxArgs)
+            {
+                Log.WarnFormat("Ignoring single instance request, invalid argument count: {0}", count);
+                return null;
+            }
+
+            string[] args = new string[count];
+            for (int i = 0; i < count; i++)
+            {
+                args[i] = reader.ReadString();
+            }
+            return args;
+        }
+
+        // Send args to existing instance
+        public static bool SendArgsToExistingInstance(string[] args)
+        {
+            if (args == null)
+            {
+                args = Array.Empty<string>();
+            }
+
             try
             {
-                IpcChannel ipcCh = new IpcChannel(ChannelName);
-                ChannelServices.RegisterChannel(ipcCh, false);
-                RemotingConfiguration.RegisterWellKnownServiceType(
-                    typeof(SingleInstanceHelper), SingleInstanceServiceName, WellKnownObjectMode.SingleCall);
-
-                Log.InfoFormat("Registered IpcChannel and Service: [ipc://{0}/{1}]", ChannelName, SingleInstanceServiceName);
+                using (var client = new NamedPipeClientStream(".", PipeName, PipeDirection.Out))
+                {
+                    client.Connect(1000); // Wait up to 1 second
+                    // leaveOpen so the client closes the pipe, not the writer
+                    using (var writer = new BinaryWriter(client, Encoding.UTF8, true))
+                    {
+                        /* Length prefixed rather than tab joined and newline terminated:
+                         * an argument may contain tabs, quotes or newlines. */
+                        writer.Write(args.Length);
+                        foreach (string arg in args)
+                        {
+                            writer.Write(arg ?? string.Empty);
+                        }
+                        writer.Flush();
+                    }
+                }
+                return true;
             }
-            catch (RemotingException ex)
+            catch (Exception ex)
             {
-                Log.Warn("Unable to register ipcchannel for single instance support, feature will be unavailable (or another instance of SuperPuTTY is already running)", ex);
-            }            
+                Log.Warn("Unable to send args to existing instance (maybe not running)", ex);
+                return false;
+            }
         }
 
-        public static void LaunchInExistingInstance(string[] args)
+        // Pipe-server callback registered by SuperPuTTY.Initialize: opens the session
+        // described by the command line that a second instance forwarded to us.
+        public static void Run(string[] args)
         {
-            IpcChannel channel = new IpcChannel();
-            ChannelServices.RegisterChannel(channel, false);
-            string url = String.Format("ipc://{0}/{1}", ChannelName, SingleInstanceServiceName);
-
-            // Register as client for remote object.
-            WellKnownClientTypeEntry remoteType = new WellKnownClientTypeEntry(typeof(SingleInstanceHelper), url);
-            RemotingConfiguration.RegisterWellKnownClientType(remoteType);
-
-            // Create a message sink.
-            string objectUri;
-            IMessageSink messageSink = channel.CreateMessageSink(url, null, out objectUri);
-
-            /*
-            Console.WriteLine("The URI of the message sink is {0}.", objectUri);
-            if (messageSink != null)
-            {
-                Console.WriteLine("The type of the message sink is {0}.", messageSink.GetType().ToString());
-            }
-            */
-
-            SingleInstanceHelper helper = new SingleInstanceHelper();
-            helper.Run(args);
-        }
-
-
-        public void Run(String[] args)
-        {
-            Log.InfoFormat("Received remote Run command: [{0}]", String.Join(" ", args));
+            Log.InfoFormat("Received remote Run command: [{0}]", string.Join(" ", args));
             CommandLineOptions cmd = new CommandLineOptions(args);
             SessionDataStartInfo ssi = cmd.ToSessionStartInfo();
             SuperPuTTY.OpenSession(ssi);

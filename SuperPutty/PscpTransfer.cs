@@ -149,6 +149,7 @@ namespace SuperPutty
         private PuttyClosedCallback m_PuttyClosed;
 
         private Thread m_PscpThread;
+        private volatile Process m_PscpProcess;
         public PuttyClosedCallback PuttyClosed
         {
             get { return m_PuttyClosed; }
@@ -447,6 +448,7 @@ namespace SuperPutty
             m_PscpThread = new Thread(delegate()
             {
                 Process processCopyToRemote = new Process();
+                m_PscpProcess = processCopyToRemote;
                 try
                 {
                     processCopyToRemote.EnableRaisingEvents = true;
@@ -503,10 +505,9 @@ namespace SuperPutty
                     processCopyToRemote.BeginOutputReadLine();
                     processCopyToRemote.WaitForExit();
                 }
-                catch (ThreadAbortException)
+                finally
                 {
-                    if (!processCopyToRemote.HasExited)
-                        processCopyToRemote.Kill();
+                    m_PscpProcess = null;
                 }
             })
             {
@@ -519,8 +520,23 @@ namespace SuperPutty
 
         internal void CancelTransfers()
         {
+            // Killing pscp ends WaitForExit, and with it the transfer thread
+            // (Thread.Abort is not supported on .NET Core / .NET 5+)
             Logger.Log("Aborting Transfer in CancelTransfer");
-            m_PscpThread.Abort();
+            Process process = m_PscpProcess;
+            try
+            {
+                if (process != null && !process.HasExited)
+                    process.Kill();
+            }
+            catch (InvalidOperationException)
+            {
+                // not started yet, or already exited
+            }
+            catch (System.ComponentModel.Win32Exception ex)
+            {
+                Logger.Log("Unable to kill pscp: {0}", ex.Message);
+            }
         }
     }
 }

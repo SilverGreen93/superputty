@@ -7,7 +7,10 @@ using System.Configuration;
 using SuperPutty.Data;
 using SuperPutty.Scp;
 using System;
+using System.Collections.Specialized;
 using System.IO;
+using System.Net.Sockets;
+using System.Reflection;
 
 namespace SuperPuttyUnitTests.Scp
 {
@@ -33,6 +36,12 @@ namespace SuperPuttyUnitTests.Scp
         public void Setup()
         {
             Log.InfoFormat("Setup");
+
+            string unavailable = ScpConfig.NetworkTestUnavailableReason();
+            if (unavailable != null)
+            {
+                Assert.Ignore(unavailable);
+            }
 
             if (proc != null)
             {
@@ -128,9 +137,19 @@ namespace SuperPuttyUnitTests.Scp
         public void ListDirBadPassword()
         {
             bool returned = false;
+            Exception error = null;
             Thread t = new Thread(x => 
             {
-                ListDirectory(ScpConfig.UserName, ScpConfig.Password + "zzz", ScpConfig.KnownHost);
+                try
+                {
+                    ListDirectory(ScpConfig.UserName, ScpConfig.Password + "zzz", ScpConfig.KnownHost);
+                }
+                catch (Exception ex)
+                {
+                    // must not escape: an unhandled exception on this thread takes down
+                    // the whole test host process
+                    error = ex;
+                }
                 lock (this)
                 {
                     Monitor.Pulse(this);
@@ -143,6 +162,10 @@ namespace SuperPuttyUnitTests.Scp
             lock (this)
             {
                 Monitor.Wait(this, 5000);
+            }
+            if (error != null)
+            {
+                Assert.Fail("ListDirectory failed: {0}", error.GetBaseException().Message);
             }
             Assert.False(returned);
             Assert.AreEqual(0, this.outData.Count);
@@ -156,9 +179,19 @@ namespace SuperPuttyUnitTests.Scp
         public void ListDirHostNoKey()
         {
             bool returned = false;
+            Exception error = null;
             Thread t = new Thread(x =>
             {
-                ListDirectory(ScpConfig.UserName, ScpConfig.Password, ScpConfig.UnKnownHost);
+                try
+                {
+                    ListDirectory(ScpConfig.UserName, ScpConfig.Password, ScpConfig.UnKnownHost);
+                }
+                catch (Exception ex)
+                {
+                    // must not escape: an unhandled exception on this thread takes down
+                    // the whole test host process
+                    error = ex;
+                }
                 lock (this)
                 {
                     Monitor.Pulse(this);
@@ -172,6 +205,10 @@ namespace SuperPuttyUnitTests.Scp
             {
                 Monitor.Wait(this, 5000);
             }
+            if (error != null)
+            {
+                Assert.Fail("ListDirectory failed: {0}", error.GetBaseException().Message);
+            }
             Assert.False(returned);
             Assert.AreEqual(0, this.outData.Count);
             Assert.Greater(this.errData.Count, 1);
@@ -183,6 +220,16 @@ namespace SuperPuttyUnitTests.Scp
     public class PscpClientListDirTests 
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(PscpClientListDirTests));
+
+        [SetUp]
+        public void CheckTestEnvironment()
+        {
+            string unavailable = ScpConfig.NetworkTestUnavailableReason();
+            if (unavailable != null)
+            {
+                Assert.Ignore(unavailable);
+            }
+        }
 
         [Test, Category("NetworkTest")]
         public void ListDirSuccess()
@@ -230,7 +277,7 @@ namespace SuperPuttyUnitTests.Scp
             Log.InfoFormat("Result: {0}", res);
         }
 
-        [Test]
+        [Test, Category("NetworkTest")]
         public void ListDirHostNoKey()
         {
             SessionData session = new SessionData
@@ -278,12 +325,22 @@ namespace SuperPuttyUnitTests.Scp
     {
         private static readonly ILog Log = LogManager.GetLogger(typeof(PscpClientTransferTests));
 
+        [SetUp]
+        public void CheckTestEnvironment()
+        {
+            string unavailable = ScpConfig.NetworkTestUnavailableReason();
+            if (unavailable != null)
+            {
+                Assert.Ignore(unavailable);
+            }
+        }
+
         static PscpClientTransferTests()
         {
             Program.InitLoggingForUnitTests();
         }
 
-        [Test, Category("Netowk Tests")]
+        [Test, Category("NetworkTest")]
         public void LocalToRemote()
         {
             SessionData session = new SessionData
@@ -333,14 +390,103 @@ namespace SuperPuttyUnitTests.Scp
         }
     }
 
+    /// <summary>
+    /// Settings for the pscp based tests, from the SuperPuTTY.ScpTests.* keys in app.config
+    /// </summary>
     public class ScpConfig
     {
-        public static readonly string PscpLocation = ConfigurationManager.AppSettings["SuperPuTTY.ScpTests.PscpLocation"];
-        public static readonly string UserName = ConfigurationManager.AppSettings["SuperPuTTY.ScpTests.UserName"];
-        public static readonly string Password = ConfigurationManager.AppSettings["SuperPuTTY.ScpTests.Password"];
-        public static readonly string KnownHost = ConfigurationManager.AppSettings["SuperPuTTY.ScpTests.KnownHost"];
-        public static readonly string UnKnownHost = ConfigurationManager.AppSettings["SuperPuTTY.ScpTests.UnKnownHost"];
+        private static readonly ILog Log = LogManager.GetLogger(typeof(ScpConfig));
 
-        public static PscpOptions DefaultOptions = new PscpOptions { PscpLocation = ScpConfig.PscpLocation };
+        public static readonly string PscpLocation;
+        public static readonly string UserName;
+        public static readonly string Password;
+        public static readonly string KnownHost;
+        public static readonly string UnKnownHost;
+
+        public static readonly PscpOptions DefaultOptions;
+
+        static ScpConfig()
+        {
+            NameValueCollection settings = LoadSettings();
+            PscpLocation = settings["SuperPuTTY.ScpTests.PscpLocation"];
+            UserName = settings["SuperPuTTY.ScpTests.UserName"];
+            Password = settings["SuperPuTTY.ScpTests.Password"];
+            KnownHost = settings["SuperPuTTY.ScpTests.KnownHost"];
+            UnKnownHost = settings["SuperPuTTY.ScpTests.UnKnownHost"];
+            DefaultOptions = new PscpOptions { PscpLocation = PscpLocation };
+            Log.InfoFormat("PscpLocation={0}, KnownHost={1}", PscpLocation, KnownHost);
+        }
+
+        /// <summary>
+        /// The tests run inside the VSTest testhost process, which does not load the .config
+        /// file of the assembly under test, so open SuperPuttyUnitTests.dll.config directly.
+        /// </summary>
+        private static NameValueCollection LoadSettings()
+        {
+            try
+            {
+                string configFile = Assembly.GetExecutingAssembly().Location + ".config";
+                if (File.Exists(configFile))
+                {
+                    Configuration config = ConfigurationManager.OpenMappedExeConfiguration(
+                        new ExeConfigurationFileMap { ExeConfigFilename = configFile },
+                        ConfigurationUserLevel.None);
+                    NameValueCollection settings = new NameValueCollection();
+                    foreach (string key in config.AppSettings.Settings.AllKeys)
+                    {
+                        settings[key] = config.AppSettings.Settings[key].Value;
+                    }
+                    return settings;
+                }
+                Log.WarnFormat("no test configuration file at {0}", configFile);
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("Error reading test configuration", ex);
+            }
+            return ConfigurationManager.AppSettings;
+        }
+
+        /// <summary>
+        /// Why the pscp based tests cannot run here, or null when they can.  They need a real
+        /// pscp.exe and a live ssh server, so on machines that have neither (build agents, most
+        /// dev boxes) they are skipped rather than failed.
+        /// </summary>
+        public static string NetworkTestUnavailableReason()
+        {
+            if (string.IsNullOrEmpty(PscpLocation))
+            {
+                return "SuperPuTTY.ScpTests.PscpLocation is not set in app.config";
+            }
+            if (!File.Exists(PscpLocation))
+            {
+                return string.Format("pscp not found at '{0}'", PscpLocation);
+            }
+            if (string.IsNullOrEmpty(KnownHost))
+            {
+                return "SuperPuTTY.ScpTests.KnownHost is not set in app.config";
+            }
+            if (!IsPortOpen(KnownHost, 22))
+            {
+                return string.Format("nothing listening on {0}:22", KnownHost);
+            }
+            return null;
+        }
+
+        private static bool IsPortOpen(string host, int port)
+        {
+            try
+            {
+                using (TcpClient client = new TcpClient())
+                {
+                    return client.ConnectAsync(host, port).Wait(3000) && client.Connected;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.InfoFormat("{0}:{2} not reachable: {1}", host, ex.Message, port);
+                return false;
+            }
+        }
     }
 }

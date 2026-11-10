@@ -404,6 +404,7 @@ namespace SuperPutty.Scp
 
         IBrowserPresenter Presenter { get; set; }
         BrowserFileInfoComparer Comparer { get; set; }
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public bool ConfirmTransfer { get; set; }
 
 

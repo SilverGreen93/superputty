@@ -9,18 +9,23 @@ namespace DarkModeForms
 		#region Public Properties
 
 		[Description("Color for a decorative line"), Category("Appearance")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public Color LineColor { get; set; } = SystemColors.Highlight;
 
 		[Description("Color for all Borders"), Category("Appearance")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public Color BorderColor { get; set; } = SystemColors.ControlDark;
 
 		[Description("Back color for selected Tab"), Category("Appearance")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public Color SelectTabColor { get; set; } = SystemColors.ControlLight;
 
 		[Description("Fore Color for Selected Tab"), Category("Appearance")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public Color SelectedForeColor { get; set; } = SystemColors.HighlightText;
 
 		[Description("Back Color for un-selected tabs"), Category("Appearance")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public Color TabColor { get; set; } = SystemColors.ControlLight;
 
 		[Description("Background color for the whole control"), Category("Appearance"), Browsable(true)]
@@ -30,9 +35,11 @@ namespace DarkModeForms
 		public override Color ForeColor { get; set; } = SystemColors.ControlText;
 
 		[Description("Shows a Close Button on each tab"), Category("Appearance")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public bool ShowTabCloseButton { get; set; } = true;
 
 		[Description("Color for the Close Button on each tab"), Category("Appearance")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		public Color TabCloseColor { get; set; }
 
 		#endregion Public Properties
