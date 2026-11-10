@@ -136,7 +136,8 @@ namespace SuperPutty.Utils
             }
         }
 
-        // Example usage: call this in Program/Main
+        // Pipe-server callback registered by SuperPuTTY.Initialize: opens the session
+        // described by the command line that a second instance forwarded to us.
         public static void Run(string[] args)
         {
             Log.InfoFormat("Received remote Run command: [{0}]", string.Join(" ", args));
