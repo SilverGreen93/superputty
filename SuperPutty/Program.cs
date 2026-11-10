@@ -63,9 +63,13 @@ namespace SuperPutty
                 SuperPuTTY.IsFirstRun, SuperPuTTY.Settings.SingleInstanceMode, onlyInstance);
             if ((EnforceSingleInstance  || SuperPuTTY.Settings.SingleInstanceMode) && !SuperPuTTY.IsFirstRun && !onlyInstance)
             {
-                SingleInstanceHelper.SendArgsToExistingInstance(args);
-                Log.InfoFormat("Sent Command to Existing Instance: [{0}]", String.Join(" ", args));
-                Environment.Exit(0);
+                if (SingleInstanceHelper.SendArgsToExistingInstance(args))
+                {
+                    Log.InfoFormat("Sent Command to Existing Instance: [{0}]", String.Join(" ", args));
+                    Environment.Exit(0);
+                }
+                // the other instance is gone or unreachable: don't drop the command
+                Log.Warn("Could not hand the command to an existing instance, starting a new one");
             }
 
             // open full file
