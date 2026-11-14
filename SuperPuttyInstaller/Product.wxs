@@ -1,5 +1,15 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util" xmlns:netfx="http://wixtoolset.org/schemas/v4/wxs/netfx" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">  
-  <Package Name="SuperXPuTTY" Language="1033" Version="!(bind.fileVersion.ProductExe)" Manufacturer="SilverGreen93" UpgradeCode="03448e74-2381-4de9-93f0-58039c377caa" InstallerVersion="200">
+  <!--
+    Scope="perUser" makes this a pure per-user package: ALLUSERS is left unset and the
+    package is not marked Privileged, so Windows Installer runs the whole installation in
+    the user's context and UAC never comes up. Files go under %LOCALAPPDATA% (see the
+    directory tree below) and the Start Menu shortcuts land in the user's own menu.
+    A side benefit: SuperXPuTTY then runs unelevated, which is what the embedded PuTTY
+    (PuttyEmbed) needs.
+    A per-user package cannot remove a per-machine install, so anyone still running the
+    old "Program Files" install has to uninstall it first (or run this MSI elevated).
+  -->
+  <Package Name="SuperXPuTTY" Language="1033" Version="!(bind.fileVersion.ProductExe)" Manufacturer="SilverGreen93" UpgradeCode="03448e74-2381-4de9-93f0-58039c377caa" InstallerVersion="200" Scope="perUser">
     
     <Icon Id="ProductIcon" SourceFile="$(var.SuperPutty.ProjectDir)Apps-utilities-terminal.ico" />
     <Property Id="ARPPRODUCTICON" Value="ProductIcon" />
@@ -30,15 +40,18 @@
       <ComponentRef Id="ApplicationShortcuts" /> 
     </Feature>
 
-    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
-
     <WixVariable Id="WixUIBannerBmp" Value="WixUIBannerBmp.bmp" />
     <WixVariable Id="WixUIDialogBmp" Value="WixUIDialogBmp.bmp" />
 
     <WixVariable Id="WixUILicenseRtf" Value="$(var.SolutionDir)License.rtf" />
 
+    <!--
+      WixUI_Minimal: license page, Verify Ready, progress, finish. No install-folder page,
+      because there is no choice to make - the install always goes to
+      %LOCALAPPDATA%\Programs\SuperXPuTTY.
+    -->
     <UI>
-      <ui:WixUI Id="WixUI_InstallDir" />      
+      <ui:WixUI Id="WixUI_Minimal" />      
       <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication" Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
     </UI>
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch SuperXPuTTY" />    
@@ -47,11 +60,16 @@
   </Package>
 
   <Fragment>
-      <StandardDirectory Id="ProgramFiles64Folder">
-        <Directory Id="INSTALLFOLDER" Name="SuperXPuTTY">
-          <Directory Id="INSTALLTHEMEFOLDER" Name="themes">
-            <Directory Id="INSTALLDEFAULTTHEME" Name="default">
-              <Directory Id="INSTALLTHEMEICONSFOLDER" Name="icons" />
+      <!-- %LOCALAPPDATA%\Programs\SuperXPuTTY, the usual spot for per-user Windows apps
+           (VS Code and friends). LocalAppDataFolder is a standard directory Windows
+           Installer resolves for the current user, so no elevation is needed. -->
+      <StandardDirectory Id="LocalAppDataFolder">
+        <Directory Id="LocalProgramsFolder" Name="Programs">
+          <Directory Id="INSTALLFOLDER" Name="SuperXPuTTY">
+            <Directory Id="INSTALLTHEMEFOLDER" Name="themes">
+              <Directory Id="INSTALLDEFAULTTHEME" Name="default">
+                <Directory Id="INSTALLTHEMEICONSFOLDER" Name="icons" />
+              </Directory>
             </Directory>
           </Directory>
         </Directory>
@@ -77,47 +95,74 @@
     </Fragment>
 
   <Fragment>
+    <!--
+      Every component here keys off an HKCU value instead of one of its files: a component
+      that installs into the user's profile must not have a file KeyPath (ICE38). The value
+      is only an install marker, so each file keeps its own component and can be repaired on
+      its own. A component with a non-file KeyPath cannot have a generated Guid either, so
+      these components spell theirs out.
+      The RemoveFolder rows are the other half of living in the profile: Windows Installer
+      does not clean directories out of the profile by itself (ICE64), and it only removes a
+      folder once it is empty, so %LOCALAPPDATA%\Programs survives if other apps live there.
+    -->
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <!-- .NET 10: SuperXPuTTY.exe is the native launcher, the code is in SuperXPuTTY.dll;
            no ngen (.NET Framework only) -->
-      <Component Id="ProductExe">
+      <Component Id="ProductExe" Guid="AD301A84-C006-4797-B0F2-AECEC9E4C754">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductExe" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductExe" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.exe" />
+        <RemoveFolder Id="RemoveLocalProgramsFolder" Directory="LocalProgramsFolder" On="uninstall" />
+        <RemoveFolder Id="RemoveInstallFolder" Directory="INSTALLFOLDER" On="uninstall" />
       </Component>
-      <Component Id="ProductDll">
+      <Component Id="ProductDll" Guid="BA98487B-6C9E-4FCB-A72F-4C0B5E190F48">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductDll" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductDll" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.dll" />
       </Component>
-      <Component Id="ProductDllConfig">
+      <Component Id="ProductDllConfig" Guid="6D2ECE03-59EC-4E97-9C8C-0330636BB595">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductDllConfig" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductDllConfig" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.dll.config" />
       </Component>
-      <Component Id="ProductRuntimeConfig">
+      <Component Id="ProductRuntimeConfig" Guid="E3F1EF99-611E-4743-8FE0-2DEEBC88BD59">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductRuntimeConfig" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductRuntimeConfig" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.runtimeconfig.json" />
       </Component>
-      <Component Id="ProductDeps">
+      <Component Id="ProductDeps" Guid="13E922F8-3CF1-45A6-BD4A-CE11478A135A">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductDeps" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductDeps" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.deps.json" />
       </Component>
       <!-- embedded PuTTY, built by the SuperPutty project from the putty submodule;
            without it SSH/Telnet/Rlogin/Raw/Serial sessions fall back to external PuTTY -->
-      <Component Id="ProductPuttyEmbed">
+      <Component Id="ProductPuttyEmbed" Guid="177D2BAE-F891-4918-8078-60132B053F7A">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.PuttyEmbed" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductPuttyEmbedDll" Source="$(var.SuperPutty.TargetDir)putty-embed.dll" />
       </Component>
-      <Component Id="ProductLibSystemWebAdapters">
+      <Component Id="ProductLibSystemWebAdapters" Guid="C32B1070-51B1-45BD-871C-9BEC9D9AC921">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.SystemWebAdapters" Type="integer" Value="1" KeyPath="yes" />
         <File Id="Microsoft.AspNetCore.SystemWebAdapters.dll" Source="$(var.SuperPutty.TargetDir)Microsoft.AspNetCore.SystemWebAdapters.dll" />
       </Component>
-      <Component Id="ProductLibRuntimeCaching">
+      <Component Id="ProductLibRuntimeCaching" Guid="E2410D98-D7A9-49E1-BCC5-E0E466410F05">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.RuntimeCaching" Type="integer" Value="1" KeyPath="yes" />
         <File Id="System.Runtime.Caching.dll" Source="$(var.SuperPutty.TargetDir)System.Runtime.Caching.dll" />
       </Component>
-      <Component Id="ProductLibLogging">
+      <Component Id="ProductLibLogging" Guid="5E31F8FC-BCFA-4288-A70F-ADDCA4552C24">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.log4net" Type="integer" Value="1" KeyPath="yes" />
         <File Id="log4net.dll" Source="$(var.SuperPutty.TargetDir)\log4net.dll" />
       </Component>
-      <Component Id="ProductLibUI">
+      <Component Id="ProductLibUI" Guid="FAC2DC83-26C6-45B2-BFA5-7C9D22CB5F47">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.Docking" Type="integer" Value="1" KeyPath="yes" />
         <File Id="WeifenLuo.WinFormsUI.Docking.dll" Source="$(var.SuperPutty.TargetDir)\WeifenLuo.WinFormsUI.Docking.dll" />
       </Component>
-      <Component Id="ProductLibUITheme">
+      <Component Id="ProductLibUITheme" Guid="9FC6A351-69DC-4E02-BBE7-600887B3F593">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.DockingTheme" Type="integer" Value="1" KeyPath="yes" />
         <File Id="WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll" Source="$(var.SuperPutty.TargetDir)\WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll" />
       </Component>
     </ComponentGroup>
     <ComponentGroup Id="DefaultTheme" Directory="INSTALLTHEMEICONSFOLDER">
-      <Component Id="ThemeIconFiles" Guid="C834A688-708A-4DE1-8B64-7582CFF47F7C">
+      <Component Id="ThemeIconFiles" Guid="E35C914D-0F1B-4F70-B290-4A56CEDBAC57">
+        <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ThemeIcons" Type="integer" Value="1" KeyPath="yes" />
+        <RemoveFolder Id="RemoveThemeIconsFolder" Directory="INSTALLTHEMEICONSFOLDER" On="uninstall" />
+        <RemoveFolder Id="RemoveThemeDefaultFolder" Directory="INSTALLDEFAULTTHEME" On="uninstall" />
+        <RemoveFolder Id="RemoveThemeFolder" Directory="INSTALLTHEMEFOLDER" On="uninstall" />
         <File Id="application_osx_terminal.png" Source="$(var.SuperPutty.TargetDir)themes\default\icons\application_osx_terminal.png" />
         <File Id="application_xp_terminal.png" Source="$(var.SuperPutty.TargetDir)themes\default\icons\application_xp_terminal.png" />
         <File Id="book.png" Source="$(var.SuperPutty.TargetDir)themes\default\icons\book.png" />
