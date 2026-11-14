@@ -7,7 +7,17 @@
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/SilverGreen93/superputty/" />
     <Property Id="ARPNOREPAIR" Value="1" />
 
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <!--
+      AllowSameVersionUpgrades: Version is bound to SuperXPuTTY.exe's file version, so
+      rebuilding or re-releasing without bumping it keeps the same ProductVersion. Windows
+      Installer then finds the installed product but no Upgrade rule covers it, and stops
+      with "Another version of SuperXPuTTY is already installed" (1638). Including the
+      boundary makes the old install a major upgrade instead: it is removed and the new
+      package installed. Lower versions still hit the downgrade message below, and WiX
+      gives every build a new ProductCode, as a same-version upgrade requires.
+    -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+                  DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
     <!-- SuperXPuTTY runs on the .NET 10 Desktop Runtime (x64), installed separately -->
     <netfx:DotNetCompatibilityCheck Property="DOTNETDESKTOP10CHECK" RuntimeType="desktop" Platform="x64" Version="10.0.0" RollForward="latestMinor" />
