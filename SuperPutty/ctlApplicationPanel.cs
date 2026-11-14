@@ -118,7 +118,7 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             SuperPuTTY.Settings.SettingsSaving += Settings_SettingsSaving;
             // same test as OnVisibleChanged, so a panel that embeds PuTTY never subscribes:
             // its terminal is our own child window, there is no Alt+Tab switch to follow
-            if (!PuttyEmbed.Supports(this.proto))
+            if (!PuttyEmbed.SupportsEmbedded(this.proto))
             {
                 SuperPuTTY.WindowEvents.SystemSwitch += new EventHandler<GlobalWindowEventArgs>(OnSystemSwitch);
             }
@@ -702,7 +702,7 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             {
                 m_Created = true;
                 m_AppWin = IntPtr.Zero;
-                if (PuttyEmbed.Supports(this.proto))
+                if (PuttyEmbed.SupportsEmbedded(this.proto))
                 {
                     this.CreateEmbeddedSession();
                 }

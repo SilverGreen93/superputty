@@ -25,6 +25,26 @@ namespace SuperPutty.Utils
         /// </summary>
         public static bool IsAvailable { get; } = Probe();
 
+        /// <summary>
+        /// true if a new terminal belongs in the embedded PuTTY rather than in an external
+        /// putty.exe: the user has "Use embedded terminal" on (Tools->Options->Advanced)
+        /// and the dll can be used. Check <see cref="SupportsEmbedded"/> when you also
+        /// have a protocol to test.
+        /// </summary>
+        public static bool IsEnabled
+        {
+            get { return IsEnabledFor(SuperPuTTY.Settings.UseEmbeddedTerminal); }
+        }
+
+        /// <summary>
+        /// As <see cref="IsEnabled"/>, but with a choice that is not saved yet, so the
+        /// options dialog can judge what the user is about to apply.
+        /// </summary>
+        public static bool IsEnabledFor(bool userChoice)
+        {
+            return userChoice && IsAvailable;
+        }
+
         /// <summary>Protocols the embedded PuTTY runs; the rest stay external programs</summary>
         public static bool Supports(ConnectionProtocol proto)
         {
@@ -39,6 +59,16 @@ namespace SuperPutty.Utils
                 default:
                     return false;
             }
+        }
+
+        /// <summary>
+        /// As <see cref="Supports"/>, but it also asks the user's setting: false means this
+        /// session has to be started as an external program, even if the embedded PuTTY
+        /// could run it.
+        /// </summary>
+        public static bool SupportsEmbedded(ConnectionProtocol proto)
+        {
+            return IsEnabled && Supports(proto);
         }
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Unicode)]

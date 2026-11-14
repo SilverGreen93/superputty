@@ -16,7 +16,7 @@ namespace SuperPutty.Utils
 
         public static String GetExecutable(SessionData session)
         {
-            if (PuttyEmbed.Supports(session.Proto))
+            if (PuttyEmbed.SupportsEmbedded(session.Proto))
             {
                 // runs in-process, see ApplicationPanel
                 return PuttyEmbed.DllPath;
