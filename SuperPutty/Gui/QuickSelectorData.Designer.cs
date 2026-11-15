@@ -41,6 +41,10 @@ namespace SuperPutty.Gui {
         
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+        // SYSLIB0051: the generated ctor chains to DataSet's formatter-based one, which nothing
+        // here calls; BinaryFormatter is off in .NET anyway and this file is regenerated from
+        // QuickSelectorData.xsd, so the warning is silenced instead of the ctor removed.
+        [global::System.Obsolete("Kept only because the typed dataset generator emits it; never called.", false)]
         protected QuickSelectorData(global::System.Runtime.Serialization.SerializationInfo info, global::System.Runtime.Serialization.StreamingContext context) : 
                 base(info, context, false) {
             if ((this.IsBinarySerialized(info, context) == true)) {
@@ -315,6 +319,8 @@ namespace SuperPutty.Gui {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            // SYSLIB0051, same as the QuickSelectorData ctor above
+            [global::System.Obsolete("Kept only because the typed dataset generator emits it; never called.", false)]
             protected ItemDataDataTable(global::System.Runtime.Serialization.SerializationInfo info, global::System.Runtime.Serialization.StreamingContext context) : 
                     base(info, context) {
                 this.InitVars();

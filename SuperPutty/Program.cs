@@ -50,8 +50,6 @@ namespace SuperPutty
         [STAThread]
         static void Main(string[] args)
         {
-            System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
-
             // send log to console
             log4net.Config.BasicConfigurator.Configure();
 
@@ -86,6 +84,7 @@ namespace SuperPutty
             try
             {
                 //must happen before any window is created, including the dialogs shown by Initialize()
+                Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
 

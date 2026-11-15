@@ -280,7 +280,6 @@ namespace DarkModeForms
 
 		private IntPtr originalWndProc;
 		private WndProc newWndProcDelegate;
-		private IntPtr formHandle;
 		private bool applyingTheme; // Flag to prevent recursion
 
 		#endregion
@@ -1550,8 +1549,12 @@ namespace DarkModeForms
 		{
 			base.OnRenderItemBackground(e);
 
-			// Only draw border for ComboBox items
+			// Only draw border for ComboBox items. A ToolStrip renders ToolStripItems, never a
+			// WinForms ComboBox, so this branch never runs; it is left as the upstream code has
+			// it rather than pretending the check does something.
+#pragma warning disable CS0184
 			if (e.Item is ComboBox)
+#pragma warning restore CS0184
 			{
 				Rectangle rect = new Rectangle(Point.Empty, e.Item.Size);
 				e.Graphics.DrawRectangle(new Pen(MyColors.ControlLight, 1), rect);

@@ -54,8 +54,10 @@ namespace DarkModeForms
 			g.Dispose();
 		}
 
+		// ProgressBar already has Minimum; hiding it is deliberate. The base setter enforces the
+		// same range this one does, and going through the common control would fight UserPaint.
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
-		public int Minimum
+		public new int Minimum
 		{
 			get
 			{
@@ -90,7 +92,7 @@ namespace DarkModeForms
 		}
 
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
-		public int Maximum
+		public new int Maximum
 		{
 			get
 			{
@@ -119,7 +121,7 @@ namespace DarkModeForms
 		}
 
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
-		public int Value
+		public new int Value
 		{
 			get
 			{

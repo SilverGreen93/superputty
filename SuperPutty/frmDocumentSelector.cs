@@ -100,9 +100,20 @@ namespace SuperPutty
             SuperPuTTY.Settings.SendCommandsToVisibleOnly = this.checkSendToVisible.Checked;
         }
 
-        protected override void OnClosing(CancelEventArgs e)
+        // WFDEV004: OnClosing is obsolete. This overrides rather than calls base first on purpose: calling
+        // base.OnFormClosing(e) would run the FormClosing handlers, which may set e.Cancel, and the
+        // unconditional "e.Cancel = true" below would then overwrite it.
+        protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            base.OnClosing(e);
+            // this dialog is only hidden, so the same code runs each time it opens: closing it with Esc,
+            // Alt+F4 or the X must not destroy it. Restricted to UserClosing - on app shutdown
+            // (Application.Exit, the main form Close, Windows shutdown) it has to close with the rest,
+            // otherwise the message loop never ends and the process stays alive.
+            if (e.CloseReason != CloseReason.UserClosing)
+            {
+                base.OnFormClosing(e);
+                return;
+            }
             e.Cancel = true;
             this.Hide();
         }

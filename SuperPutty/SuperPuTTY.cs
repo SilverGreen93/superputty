@@ -16,6 +16,7 @@ using System.Drawing;
 using SuperPutty.Scp;
 using SuperPuTTY.Scripting;
 using System.Net;
+using System.Net.Http;
 using DarkModeForms;
 
 namespace SuperPutty
@@ -571,11 +572,14 @@ namespace SuperPutty
                         {
                             try
                             {
-                                HttpWebRequest req = WebRequest.CreateHttp(fileName);
-                                var response = req.GetResponse();
-                                using (var stream = new StreamReader(response.GetResponseStream()))
+                                using (HttpClient client = new HttpClient())
                                 {
-                                    script = stream.ReadToEnd();
+                                    HttpResponseMessage response = client.GetAsync(fileName).GetAwaiter().GetResult();
+                                    response.EnsureSuccessStatusCode();
+                                    using (var stream = new StreamReader(response.Content.ReadAsStream()))
+                                    {
+                                        script = stream.ReadToEnd();
+                                    }
                                 }
                             }
                             catch(Exception)

@@ -35,6 +35,7 @@ using SuperPutty.Utils;
 using System.Web;
 using System.Text.RegularExpressions;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 
 namespace SuperPutty.Data
@@ -421,11 +422,14 @@ namespace SuperPutty.Data
                 try
                 {
                     var uri = new Uri(location);
-                    HttpWebRequest req = WebRequest.CreateHttp(uri);
-                    var response = req.GetResponse();
-                    using (StreamReader r = new StreamReader(response.GetResponseStream()))
+                    using (HttpClient client = new HttpClient())
                     {
-                        sessions = (List<SessionData>)s.Deserialize(r);
+                        HttpResponseMessage response = client.GetAsync(uri).GetAwaiter().GetResult();
+                        response.EnsureSuccessStatusCode();
+                        using (StreamReader r = new StreamReader(response.Content.ReadAsStream()))
+                        {
+                            sessions = (List<SessionData>)s.Deserialize(r);
+                        }
                     }
                     Log.InfoFormat("Loaded {0} sessions from {1}", sessions.Count, location);
 

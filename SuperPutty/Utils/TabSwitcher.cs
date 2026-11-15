@@ -102,7 +102,9 @@ namespace SuperPutty.Utils
 
         public ToolWindow CurrentDocument
         {
-            get { return this.currentDocument; }
+            // the strategies keep their own order (SetCurrentTab below), so read the dock
+            // panel rather than a copy that nothing ever writes
+            get { return this.ActiveDocument; }
             set
             {
                 //Log.Info("Setting current doc: " + value);
@@ -169,7 +171,6 @@ namespace SuperPutty.Utils
         public DockPanel DockPanel { get; private set; }
 
         ITabSwitchStrategy tabSwitchStrategy;
-        ToolWindow currentDocument;
     }
     #endregion
 
