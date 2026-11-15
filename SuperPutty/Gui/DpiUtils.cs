@@ -16,6 +16,22 @@ namespace SuperPutty.Gui
         [DllImport("user32.dll")]
         public static extern int GetDpiForWindow(IntPtr hWnd);
 
+        /// <summary>A 96 DPI length in pixels at <paramref name="dpi"/>.</summary>
+        public static int Scale(int logical, int dpi)
+        {
+            return (int)Math.Round(logical * dpi / 96.0);
+        }
+
+        /// <summary>
+        /// A font of <paramref name="points"/> for a window at <paramref name="dpi"/>. Sized in pixels:
+        /// a point size is converted at the DPI the process started with, which is wrong after a
+        /// runtime DPI change (e.g. an RDP reconnect from a client with another scale).
+        /// </summary>
+        public static Font FontForDpi(string family, float points, int dpi)
+        {
+            return new Font(family, points * dpi / 72f, FontStyle.Regular, GraphicsUnit.Pixel);
+        }
+
         /// <summary>
         /// Taken from https://oliversturm.com/blog/2010/09/02/the-crime-that-is-windows-dpi-handling/
         /// </summary>

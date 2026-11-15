@@ -107,7 +107,7 @@ namespace SuperPutty
                     DockPanel.Theme = new VS2015DarkTheme();
                     break;
             }
-            CenteredTabIcons.Apply(DockPanel.Theme);
+            DpiDockPaneStripFactory.Apply(DockPanel.Theme);
 
             if (SuperPuTTY.Settings.InterfaceTheme < (int)InterfaceTheme.LightTheme)
             {
@@ -118,7 +118,7 @@ namespace SuperPutty
                 };
             }
 
-            FixDpiScalingIssues();
+            ApplyDpi(this.DeviceDpi);
 
             // keep menubar first
             menuStrip1.Location = new System.Drawing.Point(0, 0);
@@ -236,60 +236,37 @@ namespace SuperPutty
             Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
         }
 
-        /// <summary>Set the toolbar, menu and tab fonts and the toolbar box sizes for a DPI</summary>
-        private readonly List<Action<int>> dpiScalers = new List<Action<int>>();
+        // Fonts and toolbar box widths WinForms does not rescale when the DPI changes at runtime
+        // (e.g. an RDP reconnect from a client with another scale). Sizes are at 96 DPI.
+        private const string UiFontFamily = "Segoe UI", MonoFontFamily = "Lucida Console";
+        private const float UiFontPoints = 9f, MonoFontPoints = 9f, TabFontPoints = 10f;
+        private Dictionary<ToolStripItem, int> logicalBoxWidths;
+        private Dictionary<ToolStripComboBox, int> logicalDropDownWidths;
         private int appliedDpi;
 
-        private void FixDpiScalingIssues()
-        {
-            // Fonts are made for the system DPI, the box sizes are designed at 96 DPI.
-            // Scale from the designer values each time, so applying twice is harmless.
-            int systemDpi = DpiUtils.GetScreenDPI().Height;
-            Font Scaled(Font f, int dpi) => new Font(f.FontFamily, f.Size * dpi / systemDpi, f.Style, f.Unit, f.GdiCharSet);
-
-            foreach (ToolStrip strip in new ToolStrip[] { menuStrip1, tsConnect, tsCommands, statusStrip1 })
-            {
-                Font stripFont = strip.Font;
-                this.dpiScalers.Add(dpi => strip.Font = Scaled(stripFont, dpi));
-                // items with their own font (the rest inherit the strip's)
-                foreach (ToolStripItem item in strip.Items)
-                {
-                    Font itemFont = item.Font;
-                    if (!itemFont.Equals(stripFont))
-                        this.dpiScalers.Add(dpi => item.Font = Scaled(itemFont, dpi));
-                }
-            }
-
-            Font tabFont = new Font("Segoe UI", 10.0f, FontStyle.Regular);
-            this.dpiScalers.Add(dpi => DockPanel.Theme.Skin.DockPaneStripSkin.TextFont = Scaled(tabFont, dpi));
-
-            foreach (ToolStripItem box in new ToolStripItem[] { tbComboProtocol, tbTxtBoxHost, tbTxtBoxLogin, tbTxtBoxPassword, tbComboSession, tsSendCommandCombo })
-            {
-                Size size = box.Size;
-                this.dpiScalers.Add(dpi => box.Size = new Size(size.Width * dpi / 96, size.Height * dpi / 96));
-            }
-            foreach (ToolStripComboBox combo in new[] { tbComboProtocol, tsSendCommandCombo })
-            {
-                int width = combo.DropDownWidth;
-                this.dpiScalers.Add(dpi => combo.DropDownWidth = width * dpi / 96);
-            }
-
-            ApplyDpiScaling(systemDpi);
-        }
-
-        /// <summary>
-        /// WinForms leaves these alone when the DPI changes at runtime (e.g. an RDP
-        /// reconnect from a client with another scale), so they stay at the old size.
-        /// </summary>
-        private void ApplyDpiScaling(int dpi)
+        /// <summary>Set the fonts and toolbar box widths for <paramref name="dpi"/>; does nothing if already set for it.</summary>
+        private void ApplyDpi(int dpi)
         {
             if (dpi <= 0 || dpi == this.appliedDpi)
                 return;
             this.appliedDpi = dpi;
-            foreach (Action<int> scale in this.dpiScalers)
-            {
-                scale(dpi);
-            }
+
+            this.logicalBoxWidths ??= new ToolStripItem[] { tbComboProtocol, tbTxtBoxHost, tbTxtBoxLogin, tbTxtBoxPassword, tbComboSession, tsSendCommandCombo }
+                .ToDictionary(box => box, box => box.Width);
+            this.logicalDropDownWidths ??= new[] { tbComboProtocol, tsSendCommandCombo }
+                .ToDictionary(combo => combo, combo => combo.DropDownWidth);
+
+            foreach (ToolStrip strip in new ToolStrip[] { menuStrip1, tsConnect, tsCommands, statusStrip1 })
+                strip.Font = DpiUtils.FontForDpi(UiFontFamily, UiFontPoints, dpi);
+            foreach (ToolStripItem box in new ToolStripItem[] { tbTxtBoxHost, tbTxtBoxLogin, tbTxtBoxPassword, tsSendCommandCombo })
+                box.Font = DpiUtils.FontForDpi(MonoFontFamily, MonoFontPoints, dpi);
+            foreach (KeyValuePair<ToolStripItem, int> box in this.logicalBoxWidths)
+                box.Key.Width = DpiUtils.Scale(box.Value, dpi);
+            foreach (KeyValuePair<ToolStripComboBox, int> combo in this.logicalDropDownWidths)
+                combo.Key.DropDownWidth = DpiUtils.Scale(combo.Value, dpi);
+
+            // ponytail: one tab font for the theme, so floating windows on a monitor with another DPI share it
+            DockPanel.Theme.Skin.DockPaneStripSkin.TextFont = DpiUtils.FontForDpi(UiFontFamily, TabFontPoints, dpi);
         }
 
         private void TsCommandHistory_ListChanged(object sender, ListChangedEventArgs e)
@@ -2122,7 +2099,7 @@ namespace SuperPutty
         /// </summary>
         private void OnDisplayChanged()
         {
-            ApplyDpiScaling(DpiUtils.GetDpiForWindow(this.Handle));
+            ApplyDpi(DpiUtils.GetDpiForWindow(this.Handle));
             this.PerformLayout();
             this.DockPanel.PerformLayout();
             this.DockPanel.Invalidate(true); // tab strips measure their text when painting
