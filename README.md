@@ -2,7 +2,7 @@
 
 SuperXPuTTY is a Windows application which manages PuTTY/KiTTY terminals. It supports multiple protocol types such as RDP, VNC, serial, SSH, Telnet by using third party apps.
 
-![SuperPuTTY v2.0.0.0 screenshot](/screenshot.png?raw=true)
+![SuperPuTTY screenshot](/screenshot.png?raw=true)
 
 This repository is a fork of jimradford's SuperPuTTY which aims to fix some old issues and improve the overall quality of life.
 
@@ -32,7 +32,7 @@ Documentation is available at https://github.com/jimradford/superputty/wiki/Docu
 
 ## Building and issue tracking
 
-[![Build status](https://ci.appveyor.com/api/projects/status/github/SilverGreen93/superputty?svg=true)](https://ci.appveyor.com/project/SilverGreen93/superputty)
+[![CI](https://github.com/SilverGreen93/superputty/actions/workflows/ci.yml/badge.svg)](https://github.com/SilverGreen93/superputty/actions/workflows/ci.yml)
 
 The project was built with Visual Studio 2022.
 
