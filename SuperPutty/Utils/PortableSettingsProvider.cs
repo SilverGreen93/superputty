@@ -70,21 +70,70 @@ namespace SuperPutty.Utils
 
 
         /// <summary>
-        /// Return a list of possible locations for the settings file.  If non are found, create the 
+        /// Return a list of possible locations for the settings file. If non are found, create the 
         /// default in the first location
         /// </summary>
         /// <returns></returns>
         public virtual string[] GetAppSettingsPaths()
         {
             string[] paths = new string[2];
-            paths[0] = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + ApplicationName;
+            paths[0] = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\" + ApplicationName;
             paths[1] = Path.GetDirectoryName(Application.ExecutablePath);
             return paths;
+        }
+
+        /// <summary>
+        /// Location used by older versions of the application
+        /// </summary>
+        /// <returns></returns>
+        public virtual string GetLegacyAppSettingsPath()
+        {
+            return Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + ApplicationName;
         }
 
         public virtual string GetAppSettingsFileName()
         {
             return ApplicationName + ".settings";
+        }
+
+        private bool legacySettingsChecked;
+
+        /// <summary>
+        /// true when the settings file written by older versions was copied into the first settings path 
+        /// by this run of the application
+        /// </summary>
+        public static bool LegacySettingsFileMigrated { get; private set; }
+
+        /// <summary>
+        /// Copy the settings file written by older versions into the first settings path
+        /// </summary>
+        private void MigrateLegacySettingsFile()
+        {
+            if (this.legacySettingsChecked)
+            {
+                return;
+            }
+            this.legacySettingsChecked = true;
+
+            string fileName = GetAppSettingsFileName();
+            string current = Path.Combine(GetAppSettingsPaths()[0], fileName);
+            string legacy = Path.Combine(GetLegacyAppSettingsPath(), fileName);
+            if (File.Exists(current) || !File.Exists(legacy))
+            {
+                return;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(current));
+                File.Copy(legacy, current);
+                LegacySettingsFileMigrated = true;
+                Log.InfoFormat("Migrated settings from {0} to {1}", legacy, current);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error migrating settings from " + legacy, ex);
+            }
         }
 
         /// <summary>
@@ -93,6 +142,8 @@ namespace SuperPutty.Utils
         /// <returns></returns>
         string GetAppSettingsFilePath()
         {
+            MigrateLegacySettingsFile();
+
             string[] paths = GetAppSettingsPaths();
             string fileName = GetAppSettingsFileName();
 
@@ -119,10 +170,12 @@ namespace SuperPutty.Utils
             }
 
             try
-            {             
-                SettingsXML.Save(GetAppSettingsFilePath());
+            {
+                string settingsFile = GetAppSettingsFilePath();
+                Directory.CreateDirectory(Path.GetDirectoryName(settingsFile));
+                SettingsXML.Save(settingsFile);
             }
-            catch(Exception ex){
+            catch(Exception ex) {
                 Log.Error("Error saving settings", ex);
             }
         }

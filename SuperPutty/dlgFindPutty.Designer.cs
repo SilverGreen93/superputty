@@ -657,12 +657,12 @@
             // 
             label3.AutoSize = true;
             label3.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
-            label3.Location = new System.Drawing.Point(22, 272);
+            label3.Location = new System.Drawing.Point(92, 274);
             label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             label3.Name = "label3";
-            label3.Size = new System.Drawing.Size(176, 20);
+            label3.Size = new System.Drawing.Size(106, 20);
             label3.TabIndex = 52;
-            label3.Text = "Settings folder (required)";
+            label3.Text = "Settings folder";
             toolTip.SetToolTip(label3, "Where sessions and layout config files are stored");
             // 
             // chkAutostartX

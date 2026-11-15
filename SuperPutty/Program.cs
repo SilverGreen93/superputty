@@ -85,14 +85,15 @@ namespace SuperPutty
 
             try
             {
-
-                Log.Info("Starting");
-                SuperPuTTY.Initialize(args);
+                //must happen before any window is created, including the dialogs shown by Initialize()
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
 
                 AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
                 Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
+
+                Log.Info("Starting");
+                SuperPuTTY.Initialize(args);
 
                 frmSuperPutty mainForm = new frmSuperPutty();
                 SetDefaultIcon(mainForm);
