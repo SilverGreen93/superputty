@@ -16,6 +16,7 @@ using System.Drawing;
 using SuperPutty.Scp;
 using SuperPuTTY.Scripting;
 using System.Net;
+using System.Net.Http;
 using DarkModeForms;
 
 namespace SuperPutty
@@ -39,6 +40,8 @@ namespace SuperPutty
 
         public static void Initialize(string[] args)
         {
+            MigrateSettingsFolder();
+
             Log.InfoFormat($"Initializing.  Version={Version}, UserSettings={Settings.SettingsFilePath}, SettingsFolder={Settings.SettingsFolder}");
 
             Images = LoadImageList("default", false);
@@ -180,6 +183,99 @@ namespace SuperPutty
         public static LayoutData FindLayout(string name)
         {
             return layouts.FirstOrDefault(layout => name == layout.Name);
+        }
+
+        /// <summary>Name of the folder holding the session and layout files</summary>
+        private const string SettingsFolderName = "SuperXPuTTY";
+
+        /// <summary>Default location of the session and layout files</summary>
+        public static string DefaultSettingsFolder { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), SettingsFolderName); } }
+
+        /// <summary>Location of the session and layout files used by older versions</summary>
+        private static string LegacySettingsFolder { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), SettingsFolderName); } }
+
+        /// <summary>
+        /// Older versions kept the session and layout files in the documents folder.  They are copied
+        /// to the application data folder only when the settings file itself is moved there, so a
+        /// folder chosen by the user afterwards, even the old one, is left alone.
+        /// </summary>
+        private static void MigrateSettingsFolder()
+        {
+            // reading a setting first makes sure the settings provider has looked for the old file
+            string currentDir = Settings.SettingsFolder;
+            string legacyDir = LegacySettingsFolder;
+            if (!PortableSettingsProvider.LegacySettingsFileMigrated ||
+                String.IsNullOrEmpty(currentDir) ||
+                !String.Equals(currentDir, legacyDir, StringComparison.OrdinalIgnoreCase))
+            {
+                // nothing was moved by this run, or the folder was already chosen by the user
+                return;
+            }
+
+            string newDir = DefaultSettingsFolder;
+            int copiedFiles;
+            try
+            {
+                Log.InfoFormat($"Migrating settings folder from {legacyDir} to {newDir}");
+                Directory.CreateDirectory(newDir);
+                copiedFiles = CopySettingsFolder(legacyDir, newDir);
+
+                Settings.SettingsFolder = newDir;
+                Settings.Save();
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error migrating settings folder from " + legacyDir, ex);
+                return;
+            }
+
+            if (copiedFiles > 0)
+            {
+                Messenger.MessageBox(
+                    $"Your settings have been moved from\r\n{legacyDir}\r\nto\r\n{newDir}",
+                    "Settings Moved", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        /// <summary>
+        /// Copy the contents of a settings folder, the app settings file is handled by the settings provider
+        /// </summary>
+        /// <returns>the number of files that were copied</returns>
+        private static int CopySettingsFolder(string sourceDir, string targetDir)
+        {
+            int copiedFiles = 0;
+
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                if (file.EndsWith(".settings", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                if (CopySettingsFile(file, Path.Combine(targetDir, Path.GetFileName(file))))
+                {
+                    copiedFiles++;
+                }
+            }
+
+            foreach (string dir in Directory.GetDirectories(sourceDir))
+            {
+                string subDir = Path.Combine(targetDir, Path.GetFileName(dir));
+                Directory.CreateDirectory(subDir);
+                copiedFiles += CopySettingsFolder(dir, subDir);
+            }
+
+            return copiedFiles;
+        }
+
+        private static bool CopySettingsFile(string sourceFile, string targetFile)
+        {
+            if (File.Exists(sourceFile) && !File.Exists(targetFile))
+            {
+                File.Copy(sourceFile, targetFile);
+                Log.InfoFormat($"Copied {sourceFile} to {targetFile}");
+                return true;
+            }
+            return false;
         }
 
         public static void LoadLayouts()
@@ -476,11 +572,14 @@ namespace SuperPutty
                         {
                             try
                             {
-                                HttpWebRequest req = WebRequest.CreateHttp(fileName);
-                                var response = req.GetResponse();
-                                using (var stream = new StreamReader(response.GetResponseStream()))
+                                using (HttpClient client = new HttpClient())
                                 {
-                                    script = stream.ReadToEnd();
+                                    HttpResponseMessage response = client.GetAsync(fileName).GetAwaiter().GetResult();
+                                    response.EnsureSuccessStatusCode();
+                                    using (var stream = new StreamReader(response.Content.ReadAsStream()))
+                                    {
+                                        script = stream.ReadToEnd();
+                                    }
                                 }
                             }
                             catch(Exception)

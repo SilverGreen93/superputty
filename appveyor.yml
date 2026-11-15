@@ -1,8 +1,0 @@
-image: Visual Studio 2022
-
-before_build:
-  - dotnet restore
-
-build_script:
-  - msbuild SuperPutty/SuperPutty.csproj /p:Configuration=Release
-

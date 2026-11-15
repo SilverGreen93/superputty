@@ -4,6 +4,7 @@
 
 using System;
 using System.Windows.Forms;
+using SuperPutty;
 using SuperPutty.Utils;
 
 namespace SuperPuTTY.Scripting
@@ -15,7 +16,15 @@ namespace SuperPuTTY.Scripting
         /// <returns>A string containing commands to send with variables replaced with a carriage return sent at the end</returns>
         internal static CommandData PromptHandler(string arg)
         {
-            string result = Microsoft.VisualBasic.Interaction.InputBox(arg);
+            // frmPrompt rather than Microsoft.VisualBasic.Interaction.InputBox: that dragged in
+            // the whole VB assembly for one dialog, and its box cannot be cancelled without
+            // returning an empty string indistinguishable from one typed as such
+            string result;
+            using (frmPrompt promptDialog = new frmPrompt(arg))
+            {
+                result = promptDialog.ShowDialog() == DialogResult.OK ? promptDialog.GetResult() : string.Empty;
+            }
+
             CommandData data = new CommandData(result, new KeyEventArgs(Keys.Enter), TimeSpan.FromMilliseconds(50));
             return data;
         }

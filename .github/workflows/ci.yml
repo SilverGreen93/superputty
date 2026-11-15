@@ -1,0 +1,127 @@
+name: CI
+
+# Replacement for appveyor.yml: builds all the code (SuperPutty.sln, which also
+# drives the putty-embed.dll CMake build from the putty submodule) and runs the
+# unit tests.  Both jobs run as independent Pull Request checks.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# a new push to the PR branch supersedes the previous run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    name: Build
+    # Windows Server 2025 with Visual Studio 2026, CMake and MSVC on PATH: the
+    # same toolchain the "Visual Studio 2026" AppVeyor image provided.
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # AppVeyor needed an explicit "git submodule update --init"; SuperPutty.csproj
+          # builds putty-embed.dll from the putty submodule (BuildPuttyEmbed target),
+          # so it has to be present before msbuild runs.
+          submodules: recursive
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.wixproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      # dotnet build also restores. Building the solution covers the app, the unit
+      # tests and the WiX installer; SuperPutty.csproj configures and builds the
+      # putty-embed target with cmake as part of the build.
+      - name: Build SuperPutty.sln (Release)
+        run: dotnet build SuperPutty.sln --configuration Release
+
+      - name: Check the build outputs
+        shell: pwsh
+        run: |
+          $app = 'SuperPutty/bin/x64/Release/net10.0-windows/win-x64'
+          $missing = @()
+          foreach ($file in "$app/SuperXPuTTY.exe", "$app/putty-embed.dll") {
+            if (-not (Test-Path $file)) { $missing += $file }
+          }
+          if (-not (Get-ChildItem 'SuperPuttyInstaller/bin/x64/Release/*.msi' -ErrorAction SilentlyContinue)) {
+            $missing += 'SuperPuttyInstaller/bin/x64/Release/*.msi'
+          }
+          if ($missing) {
+            "Missing build output: $($missing -join ', ')"
+            exit 1
+          }
+
+      - name: Upload application
+        uses: actions/upload-artifact@v7
+        with:
+          name: SuperXPuTTY-win-x64
+          path: SuperPutty/bin/x64/Release/net10.0-windows/win-x64/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: SuperXPuTTYSetup-msi
+          path: SuperPuttyInstaller/bin/x64/Release/*.msi
+          if-no-files-found: error
+          retention-days: 7
+
+  test:
+    name: Unit tests
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        # no submodules here: the managed tests never load putty-embed.dll and the
+        # native build is left to the build job
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.wixproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      # BuildPuttyEmbed=false skips the cmake/native putty build. The pscp based
+      # tests (Category NetworkTest) call Assert.Ignore themselves when there is no
+      # pscp.exe and ssh server, so they come out as skipped rather than failed here.
+      - name: Run unit tests
+        run: >-
+          dotnet test SuperPuttyUnitTests/SuperPuttyUnitTests.csproj
+          --configuration Release
+          -p:BuildPuttyEmbed=false
+          --results-directory TestResults
+          --logger "trx;LogFileName=unit-tests.trx"
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: unit-test-results
+          path: TestResults/*.trx
+          if-no-files-found: error
+          retention-days: 7

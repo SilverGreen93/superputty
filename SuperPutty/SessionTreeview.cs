@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2009 Jim Radford http://www.jimradford.com
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,6 @@
 
 using DarkModeForms;
 using log4net;
-using Microsoft.VisualBasic;
 using SuperPutty.Data;
 using SuperPutty.Gui;
 using SuperPutty.Utils;
@@ -149,11 +148,11 @@ namespace SuperPutty
             this.ResortNodes();
         }
 
-        protected override void OnClosed(EventArgs e)
+        protected override void OnFormClosed(FormClosedEventArgs e)
         {
             SuperPuTTY.Sessions.ListChanged -= new ListChangedEventHandler(Sessions_ListChanged);
             SuperPuTTY.Settings.SettingsSaving -= new SettingsSavingEventHandler(Settings_SettingsSaving);
-            base.OnClosed(e);
+            base.OnFormClosed(e);
         }
 
         /// <summary>
