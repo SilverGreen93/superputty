@@ -128,7 +128,7 @@ namespace SuperPutty.Gui
 
         private const int _DocumentStripGapTop = 0;
         private const int _DocumentStripGapBottom = 1;
-        private const int _DocumentTabMaxWidth = 200;
+        private const int _DocumentTabMaxWidth = 280;
         private const int _DocumentButtonGapTop = 3;
         private const int _DocumentButtonGapBottom = 3;
         private const int _DocumentButtonGapBetween = 0;
@@ -138,7 +138,7 @@ namespace SuperPutty.Gui
         private const int _DocumentTabGapRight = 0;//3;
         private const int _DocumentIconGapBottom = 2;//2;
         private const int _DocumentIconGapLeft = 8;
-        private const int _DocumentIconGapRight = 0;
+        private const int _DocumentIconGapRight = 6;
         private const int _DocumentIconHeight = 16;
         private const int _DocumentIconWidth = 16;
         private const int _DocumentTextGapRight = 6;
@@ -393,8 +393,7 @@ namespace SuperPutty.Gui
             {
                 TextFormatFlags textFormat = TextFormatFlags.EndEllipsis |
                     TextFormatFlags.SingleLine |
-                    TextFormatFlags.VerticalCenter |
-                    TextFormatFlags.HorizontalCenter;
+                    TextFormatFlags.VerticalCenter;
                 if (RightToLeft == RightToLeft.Yes)
                     return textFormat | TextFormatFlags.RightToLeft;
                 else
@@ -488,7 +487,7 @@ namespace SuperPutty.Gui
 
         private int MeasureHeight_Document()
         {
-            int height = Math.Max(Math.Max(TextFont.Height, DocumentIconHeight) + DocumentTabGapTop + DocumentIconGapBottom,
+            int height = Math.Max(Math.Max(TextFont.Height, DocumentIconHeight) + Scale(10),
                 ButtonOverflow.Height + DocumentButtonGapTop + DocumentButtonGapBottom)
                 + DocumentStripGapBottom + DocumentStripGapTop;
 
@@ -785,13 +784,13 @@ namespace SuperPutty.Gui
                 + ToolWindowImageGapRight + ToolWindowTextGapRight;
         }
 
-        private int TabCloseButtonWidth => Scale(30);
+        private int TabCloseButtonWidth => Scale(20);
 
         private int GetMaxTabWidth_Document(int index)
         {
             IDockContent content = Tabs[index].Content;
-            int height = GetTabRectangle_Document(index).Height;
-            Size sizeText = TextRenderer.MeasureText(content.DockHandler.TabText, BoldFont, new Size(DocumentTabMaxWidth, height), DocumentTextFormat);
+            Size sizeText = TextRenderer.MeasureText(content.DockHandler.TabText, TextFont, Size.Empty, DocumentTextFormat & ~TextFormatFlags.EndEllipsis);
+            sizeText.Width = Math.Min(sizeText.Width, DocumentTabMaxWidth);
 
             int width;
             if (DockPane.DockPanel.ShowDocumentIcon)
@@ -854,13 +853,9 @@ namespace SuperPutty.Gui
             }
             else
             {
-                Color tabUnderLineColor;
-                if (tabActive != null && DockPane.IsActiveDocumentPane)
-                    tabUnderLineColor = DockPane.DockPanel.Theme.ColorPalette.TabSelectedActive.Background;
-                else
-                    tabUnderLineColor = DockPane.DockPanel.Theme.ColorPalette.TabSelectedInactive.Background;
-
-                g.DrawLine(DockPane.DockPanel.Theme.PaintingService.GetPen(tabUnderLineColor, 4), rectTabStrip.Left, rectTabStrip.Bottom, rectTabStrip.Right, rectTabStrip.Bottom);
+                int line = Scale(2);
+                g.FillRectangle(DockPane.DockPanel.Theme.PaintingService.GetBrush(DockPane.DockPanel.Theme.ColorPalette.TabSelectedInactive.Background),
+                    rectTabStrip.Left, rectTabStrip.Bottom - line, rectTabStrip.Width, line);
             }
 
             g.SetClip(DrawHelper.RtlTransform(this, rectTabOnly));
@@ -1060,76 +1055,37 @@ namespace SuperPutty.Gui
                 rectText.Width = rect.Width - DocumentIconGapLeft - DocumentTextGapRight - rectCloseButton.Width;
 
             Rectangle rectTab = DrawHelper.RtlTransform(this, rect);
-            Rectangle rectBack = DrawHelper.RtlTransform(this, rect);
-            rectBack.Width += DocumentIconGapLeft;
-            rectBack.X -= DocumentIconGapLeft;
 
             rectText = DrawHelper.RtlTransform(this, rectText);
             rectIcon = DrawHelper.RtlTransform(this, rectIcon);
 
-            Color activeColor = DockPane.DockPanel.Theme.ColorPalette.TabSelectedActive.Background;
-            Color lostFocusColor = DockPane.DockPanel.Theme.ColorPalette.TabSelectedInactive.Background;
-            Color inactiveColor = DockPane.DockPanel.Theme.ColorPalette.MainWindowActive.Background;
-            Color mouseHoverColor = DockPane.DockPanel.Theme.ColorPalette.TabUnselectedHovered.Background;
+            var palette = DockPane.DockPanel.Theme.ColorPalette;
+            var images = DockPane.DockPanel.Theme.ImageService;
+            var painting = DockPane.DockPanel.Theme.PaintingService;
+            bool active = DockPane.ActiveContent == tab.Content;
+            bool hover = !active && tab.Content == DockPane.MouseOverTab;
+            Color raised = palette.TabSelectedInactive.Background;
+            Color back = active ? raised : hover ? Blend(palette.MainWindowActive.Background, raised) : palette.MainWindowActive.Background;
+            Color text = active || hover ? palette.TabSelectedInactive.Text : palette.TabUnselected.Text;
+            Image image = !active && !hover ? null
+                : IsMouseDown ? images.TabPressLostFocus_Close
+                : rectCloseButton == ActiveClose ? images.TabHoverLostFocus_Close
+                : images.TabLostFocus_Close;
 
-            Color activeText = DockPane.DockPanel.Theme.ColorPalette.TabSelectedActive.Text;
-            Color lostFocusText = DockPane.DockPanel.Theme.ColorPalette.TabSelectedInactive.Text;
-            Color inactiveText = DockPane.DockPanel.Theme.ColorPalette.TabUnselected.Text;
-            Color mouseHoverText = DockPane.DockPanel.Theme.ColorPalette.TabUnselectedHovered.Text;
-
-            Color text;
-            Image image = null;
-            Color paint;
-            var imageService = DockPane.DockPanel.Theme.ImageService;
-            if (DockPane.ActiveContent == tab.Content)
-            {
-                if (DockPane.IsActiveDocumentPane)
-                {
-                    paint = activeColor;
-                    text = activeText;
-                    image = IsMouseDown
-                        ? imageService.TabPressActive_Close
-                        : rectCloseButton == ActiveClose
-                            ? imageService.TabHoverActive_Close
-                            : imageService.TabActive_Close;
-                }
-                else
-                {
-                    paint = lostFocusColor;
-                    text = lostFocusText;
-                    image = IsMouseDown
-                        ? imageService.TabPressLostFocus_Close
-                        : rectCloseButton == ActiveClose
-                            ? imageService.TabHoverLostFocus_Close
-                            : imageService.TabLostFocus_Close;
-                }
-            }
-            else
-            {
-                if (tab.Content == DockPane.MouseOverTab)
-                {
-                    paint = mouseHoverColor;
-                    text = mouseHoverText;
-                    image = IsMouseDown
-                        ? imageService.TabPressInactive_Close
-                        : rectCloseButton == ActiveClose
-                            ? imageService.TabHoverInactive_Close
-                            : imageService.TabInactive_Close;
-                }
-                else
-                {
-                    paint = inactiveColor;
-                    text = inactiveText;
-                }
-            }
-
-            g.FillRectangle(DockPane.DockPanel.Theme.PaintingService.GetBrush(paint), rect);
+            g.FillRectangle(painting.GetBrush(back), rect);
+            if (active && DockPane.IsActiveDocumentPane)
+                g.FillRectangle(painting.GetBrush(palette.TabSelectedActive.Background), rect.X, rect.Y, rect.Width, Scale(2));
             TextRenderer.DrawText(g, tab.Content.DockHandler.TabText, TextFont, rectText, text, DocumentTextFormat);
             if (image != null)
                 g.DrawImage(image, rectCloseButton);
 
             if (rectTab.Contains(rectIcon) && DockPane.DockPanel.ShowDocumentIcon)
                 g.DrawIcon(tab.Content.DockHandler.Icon, rectIcon);
+        }
+
+        private static Color Blend(Color a, Color b)
+        {
+            return Color.FromArgb((a.R + b.R) / 2, (a.G + b.G) / 2, (a.B + b.B) / 2);
         }
 
         private bool m_isMouseDown = false;
