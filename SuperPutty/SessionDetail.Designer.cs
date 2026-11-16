@@ -33,11 +33,9 @@
             // 
             // sessionDetailPropertyGrid
             // 
-            this.sessionDetailPropertyGrid.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.sessionDetailPropertyGrid.CategoryForeColor = System.Drawing.SystemColors.InactiveCaptionText;
-            this.sessionDetailPropertyGrid.Location = new System.Drawing.Point(0, 1);
+            this.sessionDetailPropertyGrid.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.sessionDetailPropertyGrid.Location = new System.Drawing.Point(0, 0);
             this.sessionDetailPropertyGrid.Name = "sessionDetailPropertyGrid";
             this.sessionDetailPropertyGrid.Size = new System.Drawing.Size(290, 247);
             this.sessionDetailPropertyGrid.TabIndex = 0;
