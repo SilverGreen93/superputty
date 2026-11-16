@@ -170,13 +170,27 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         /// </summary>
         public void RefreshAfterDisplayChange()
         {
-            const uint WM_DPICHANGED_AFTERPARENT = 0x02E3;
             if (!this.ExternalProcessCaptured)
                 return;
+            if (!this.Visible)
+            {
+                // Nothing to refit while hidden; redo this when the tab is shown.
+                m_DisplayChangePending = true;
+                return;
+            }
+            m_DisplayChangePending = false;
             this.MoveWindow("DisplayChange");
             if (m_Embedded)
-                NativeMethods.SendMessage(m_AppWin, WM_DPICHANGED_AFTERPARENT, 0, 0);
+            {
+                // Embedded PuTTY runs on this thread, so this is a plain synchronous call
+                // (no cross-process hang risk). PuTTY reloads its fonts at the window's DPI.
+                NativeMethods.SendMessage(m_AppWin, WM_DPICHANGED_AFTERPARENT, IntPtr.Zero, IntPtr.Zero);
+            }
         }
+
+        private const uint WM_DPICHANGED_AFTERPARENT = 0x02E3;
+        // a display change happened while this tab was hidden
+        private bool m_DisplayChangePending;
 
         private void MoveWindow(string src)
         {
@@ -846,7 +860,11 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             {
                 // Move the child so it's located over the parent
                 this.MoveWindow("OnVisChanged");
-                
+                if (this.m_DisplayChangePending)
+                {
+                    this.RefreshAfterDisplayChange();
+                }
+
                 if (RefocusOnVisChanged && NativeMethods.GetForegroundWindow() != this.m_AppWin)
                 {
                     this.BeginInvoke(new MethodInvoker(delegate { this.ReFocusPuTTY("OnVisChanged"); }));

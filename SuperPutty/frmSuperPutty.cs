@@ -2103,11 +2103,26 @@ namespace SuperPutty
             this.PerformLayout();
             this.DockPanel.PerformLayout();
             this.DockPanel.Invalidate(true); // tab strips measure their text when painting
-            foreach (ctlPuttyPanel panel in this.DockPanel.Contents.OfType<ctlPuttyPanel>())
+
+            // Refresh the terminals once, after the window has stopped changing: a drag to another
+            // monitor sends several DPI and display-change messages in a row.
+            if (this.displayChangeTimer == null)
             {
-                panel.AppPanel?.RefreshAfterDisplayChange();
+                this.displayChangeTimer = new System.Windows.Forms.Timer { Interval = 600 };
+                this.displayChangeTimer.Tick += (s, e) =>
+                {
+                    this.displayChangeTimer.Stop();
+                    foreach (ctlPuttyPanel panel in this.DockPanel.Contents.OfType<ctlPuttyPanel>())
+                    {
+                        panel.AppPanel?.RefreshAfterDisplayChange();
+                    }
+                };
             }
+            this.displayChangeTimer.Stop();
+            this.displayChangeTimer.Start();
         }
+
+        private System.Windows.Forms.Timer displayChangeTimer;
 
         public enum TabTextBehavior
         {
