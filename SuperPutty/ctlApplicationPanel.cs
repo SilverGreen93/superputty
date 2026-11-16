@@ -163,6 +163,35 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             this.MoveWindow("RefreshWindow");
         }
 
+        /// <summary>
+        /// After a resolution or DPI change (e.g. an RDP reconnect from another client):
+        /// refit the window and have the embedded PuTTY reload its fonts, in case
+        /// Windows skipped the DPI message for our window tree.
+        /// </summary>
+        public void RefreshAfterDisplayChange()
+        {
+            if (!this.ExternalProcessCaptured)
+                return;
+            if (!this.Visible)
+            {
+                // Nothing to refit while hidden; redo this when the tab is shown.
+                m_DisplayChangePending = true;
+                return;
+            }
+            m_DisplayChangePending = false;
+            this.MoveWindow("DisplayChange");
+            if (m_Embedded)
+            {
+                // Embedded PuTTY runs on this thread, so this is a plain synchronous call
+                // (no cross-process hang risk). PuTTY reloads its fonts at the window's DPI.
+                NativeMethods.SendMessage(m_AppWin, WM_DPICHANGED_AFTERPARENT, IntPtr.Zero, IntPtr.Zero);
+            }
+        }
+
+        private const uint WM_DPICHANGED_AFTERPARENT = 0x02E3;
+        // a display change happened while this tab was hidden
+        private bool m_DisplayChangePending;
+
         private void MoveWindow(string src)
         {
             // if there is more than one screen and we're maximizing the window on the non-primary screen
@@ -831,7 +860,11 @@ DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
             {
                 // Move the child so it's located over the parent
                 this.MoveWindow("OnVisChanged");
-                
+                if (this.m_DisplayChangePending)
+                {
+                    this.RefreshAfterDisplayChange();
+                }
+
                 if (RefocusOnVisChanged && NativeMethods.GetForegroundWindow() != this.m_AppWin)
                 {
                     this.BeginInvoke(new MethodInvoker(delegate { this.ReFocusPuTTY("OnVisChanged"); }));

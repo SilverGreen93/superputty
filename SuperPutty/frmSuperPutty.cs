@@ -107,6 +107,7 @@ namespace SuperPutty
                     DockPanel.Theme = new VS2015DarkTheme();
                     break;
             }
+            DpiDockPaneStripFactory.Apply(DockPanel.Theme);
 
             if (SuperPuTTY.Settings.InterfaceTheme < (int)InterfaceTheme.LightTheme)
             {
@@ -117,7 +118,7 @@ namespace SuperPutty
                 };
             }
 
-            FixDpiScalingIssues();
+            ApplyDpi(this.DeviceDpi);
 
             // keep menubar first
             menuStrip1.Location = new System.Drawing.Point(0, 0);
@@ -233,21 +234,39 @@ namespace SuperPutty
             puTTYConfigurationToolStripMenuItem.Text = "&" + SuperPuTTY.PuTTYAppName + " configuration";
             aboutSuperPuTTYToolStripMenuItem.Text = "About " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
             Text = System.Reflection.Assembly.GetExecutingAssembly().GetName().Name;
-
-            DockPanel.Theme.Skin.DockPaneStripSkin.TextFont = new Font("Segoe UI", 10.0f, FontStyle.Regular);
         }
 
-        private void FixDpiScalingIssues()
-        {
-            this.tbComboProtocol.Size = DpiUtils.ScaleSize(this.tbComboProtocol.Size);
-            this.tbComboProtocol.DropDownWidth = DpiUtils.ScaleWidth(this.tbComboProtocol.DropDownWidth);
-            this.tbTxtBoxHost.Size = DpiUtils.ScaleSize(this.tbTxtBoxHost.Size);
-            this.tbTxtBoxLogin.Size = DpiUtils.ScaleSize(this.tbTxtBoxLogin.Size);
-            this.tbTxtBoxPassword.Size = DpiUtils.ScaleSize(this.tbTxtBoxPassword.Size);
-            this.tbComboSession.Size = DpiUtils.ScaleSize(this.tbComboSession.Size);
+        // Fonts and toolbar box widths WinForms does not rescale when the DPI changes at runtime
+        // (e.g. an RDP reconnect from a client with another scale). Sizes are at 96 DPI.
+        private const string UiFontFamily = "Segoe UI", MonoFontFamily = "Lucida Console";
+        private const float UiFontPoints = 9f, MonoFontPoints = 9f, TabFontPoints = 10f;
+        private Dictionary<ToolStripItem, int> logicalBoxWidths;
+        private Dictionary<ToolStripComboBox, int> logicalDropDownWidths;
+        private int appliedDpi;
 
-            this.tsSendCommandCombo.Size = DpiUtils.ScaleSize(this.tsSendCommandCombo.Size);
-            this.tsSendCommandCombo.DropDownWidth = DpiUtils.ScaleWidth(this.tsSendCommandCombo.DropDownWidth);
+        /// <summary>Set the fonts and toolbar box widths for <paramref name="dpi"/>; does nothing if already set for it.</summary>
+        private void ApplyDpi(int dpi)
+        {
+            if (dpi <= 0 || dpi == this.appliedDpi)
+                return;
+            this.appliedDpi = dpi;
+
+            this.logicalBoxWidths ??= new ToolStripItem[] { tbComboProtocol, tbTxtBoxHost, tbTxtBoxLogin, tbTxtBoxPassword, tbComboSession, tsSendCommandCombo }
+                .ToDictionary(box => box, box => box.Width);
+            this.logicalDropDownWidths ??= new[] { tbComboProtocol, tsSendCommandCombo }
+                .ToDictionary(combo => combo, combo => combo.DropDownWidth);
+
+            foreach (ToolStrip strip in new ToolStrip[] { menuStrip1, tsConnect, tsCommands, statusStrip1 })
+                strip.Font = DpiUtils.FontForDpi(UiFontFamily, UiFontPoints, dpi);
+            foreach (ToolStripItem box in new ToolStripItem[] { tbTxtBoxHost, tbTxtBoxLogin, tbTxtBoxPassword, tsSendCommandCombo })
+                box.Font = DpiUtils.FontForDpi(MonoFontFamily, MonoFontPoints, dpi);
+            foreach (KeyValuePair<ToolStripItem, int> box in this.logicalBoxWidths)
+                box.Key.Width = DpiUtils.Scale(box.Value, dpi);
+            foreach (KeyValuePair<ToolStripComboBox, int> combo in this.logicalDropDownWidths)
+                combo.Key.DropDownWidth = DpiUtils.Scale(combo.Value, dpi);
+
+            // ponytail: one tab font for the theme, so floating windows on a monitor with another DPI share it
+            DockPanel.Theme.Skin.DockPaneStripSkin.TextFont = DpiUtils.FontForDpi(UiFontFamily, TabFontPoints, dpi);
         }
 
         private void TsCommandHistory_ListChanged(object sender, ListChangedEventArgs e)
@@ -2107,7 +2126,49 @@ namespace SuperPutty
             {
                 base.WndProc(ref m);
             }
+            if (m.Msg == (int)NativeMethods.WM.DISPLAYCHANGE)
+            {
+                this.BeginInvoke(new Action(this.OnDisplayChanged));
+            }
         }
+
+        protected override void OnDpiChanged(DpiChangedEventArgs e)
+        {
+            base.OnDpiChanged(e);
+            this.BeginInvoke(new Action(this.OnDisplayChanged));
+        }
+
+        /// <summary>
+        /// Resolution or DPI changed (e.g. an RDP reconnect from a 4K client): the dock
+        /// layout can keep its old pixel sizes, so lay everything out again and refit
+        /// the terminals. Runs after the change has settled; safe to run repeatedly.
+        /// </summary>
+        private void OnDisplayChanged()
+        {
+            ApplyDpi(DpiUtils.GetDpiForWindow(this.Handle));
+            this.PerformLayout();
+            this.DockPanel.PerformLayout();
+            this.DockPanel.Invalidate(true); // tab strips measure their text when painting
+
+            // Refresh the terminals once, after the window has stopped changing: a drag to another
+            // monitor sends several DPI and display-change messages in a row.
+            if (this.displayChangeTimer == null)
+            {
+                this.displayChangeTimer = new System.Windows.Forms.Timer { Interval = 600 };
+                this.displayChangeTimer.Tick += (s, e) =>
+                {
+                    this.displayChangeTimer.Stop();
+                    foreach (ctlPuttyPanel panel in this.DockPanel.Contents.OfType<ctlPuttyPanel>())
+                    {
+                        panel.AppPanel?.RefreshAfterDisplayChange();
+                    }
+                };
+            }
+            this.displayChangeTimer.Stop();
+            this.displayChangeTimer.Start();
+        }
+
+        private System.Windows.Forms.Timer displayChangeTimer;
 
         public enum TabTextBehavior
         {
