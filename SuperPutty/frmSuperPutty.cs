@@ -577,7 +577,7 @@ namespace SuperPutty
 
         private void editSessionsInNotepadToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Process.Start(Path.Combine(SuperPuTTY.Settings.SettingsFolder, "Sessions.xml"));
+            ShellLink.Open(Path.Combine(SuperPuTTY.Settings.SettingsFolder, "Sessions.xml"));
         }
 
         private void reloadSessionsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1060,14 +1060,14 @@ namespace SuperPutty
         {
             if (File.Exists(Application.StartupPath + @"\superputty.chm"))
             {
-                Process.Start(Application.StartupPath + @"\superputty.chm");
+                ShellLink.Open(Application.StartupPath + @"\superputty.chm");
             }
             else
             {
                 DialogResult result = Messenger.MessageBox("Local documentation could not be found. Would you like to view the documentation online instead?", "Documentation Not Found", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
                 if (result == DialogResult.Yes)
                 {
-                    Process.Start("https://github.com/SilverGreen93/superputty/wiki/Documentation");
+                    ShellLink.Open("https://github.com/SilverGreen93/superputty/wiki/Documentation");
                 }
             }
         }
@@ -1974,7 +1974,7 @@ namespace SuperPutty
                                 MessageBoxButtons.YesNo,
                                 MsgIcon.Question) == DialogResult.Yes)
                             {
-                                Process.Start(latest.release_url);
+                                ShellLink.Open(latest.release_url);
                             }
                         }
                         else
@@ -2064,7 +2064,7 @@ namespace SuperPutty
                                 MessageBoxButtons.YesNo,
                                 MsgIcon.Question) == DialogResult.Yes)
                             {
-                                Process.Start(latest.release_url);
+                                ShellLink.Open(latest.release_url);
                             }
                         }
                         else

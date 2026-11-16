@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.Diagnostics;
 using DarkModeForms;
+using SuperPutty.Utils;
 
 namespace SuperPutty
 {
@@ -113,13 +114,19 @@ namespace SuperPutty
 
         private void richTextBox1_LinkClicked(object sender, LinkClickedEventArgs e)
         {
-            Process.Start(e.LinkText);
+            ShellLink.Open(e.LinkText);
+        }
+
+        private void linkLabelCompany_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            // this link reads as the company name, so the address cannot come from its text
+            ShellLink.Open("https://github.com/SilverGreen93");
         }
 
         private void linkLabelCompany2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             LinkLabel link = (LinkLabel)sender;
-            Process.Start(link.Text);
+            ShellLink.Open(link.Text);
         }
     }
 }

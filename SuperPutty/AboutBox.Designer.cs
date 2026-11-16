@@ -98,7 +98,7 @@ namespace SuperPutty
             linkLabelCompany.TabStop = true;
             linkLabelCompany.Text = "linkLabelCompany";
             linkLabelCompany.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            linkLabelCompany.LinkClicked += linkLabelCompany2_LinkClicked;
+            linkLabelCompany.LinkClicked += linkLabelCompany_LinkClicked;
             // 
             // linkLabelCompany2
             // 

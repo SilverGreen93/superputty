@@ -696,37 +696,37 @@ namespace SuperPutty
 
         private void puttyLink_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("https://github.com/SilverGreen93/putty/releases");
+            ShellLink.Open("https://github.com/SilverGreen93/putty/releases");
         }
 
         private void linkCygwin_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("https://cygwin.com");
+            ShellLink.Open("https://cygwin.com");
         }
 
         private void linkMsys_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("https://www.msys2.org");
+            ShellLink.Open("https://www.msys2.org");
         }
 
         private void linkWinScp_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("https://winscp.net/eng/download.php");
+            ShellLink.Open("https://winscp.net/eng/download.php");
         }
 
         private void linkFilezilla_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("https://filezilla-project.org/download.php");
+            ShellLink.Open("https://filezilla-project.org/download.php");
         }
 
         private void linkTightVnc_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("https://www.tightvnc.com/download.php");
+            ShellLink.Open("https://www.tightvnc.com/download.php");
         }
 
         private void linkXorg_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            Process.Start("https://github.com/marchaesen/vcxsrv/releases");
+            ShellLink.Open("https://github.com/marchaesen/vcxsrv/releases");
         }
     }
 }
