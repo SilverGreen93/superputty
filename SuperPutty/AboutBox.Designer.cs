@@ -41,265 +41,265 @@ namespace SuperPutty
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AboutBox));
-            this.logoPictureBox = new System.Windows.Forms.PictureBox();
-            this.okButton = new System.Windows.Forms.Button();
-            this.linkLabelCompany = new System.Windows.Forms.LinkLabel();
-            this.linkLabelCompany2 = new System.Windows.Forms.LinkLabel();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.textBoxSupportText = new System.Windows.Forms.TextBox();
-            this.labelProductName = new System.Windows.Forms.Label();
-            this.labelVersion = new System.Windows.Forms.Label();
-            this.labelCopyright = new System.Windows.Forms.Label();
-            ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).BeginInit();
-            this.tabPage3.SuspendLayout();
-            this.tabPage2.SuspendLayout();
-            this.tabPage1.SuspendLayout();
-            this.tabControl1.SuspendLayout();
-            this.tabPage4.SuspendLayout();
-            this.SuspendLayout();
+            logoPictureBox = new PictureBox();
+            okButton = new Button();
+            linkLabelCompany = new LinkLabel();
+            linkLabelCompany2 = new LinkLabel();
+            tabPage3 = new TabPage();
+            richTextBox1 = new RichTextBox();
+            tabPage2 = new TabPage();
+            textBox2 = new TextBox();
+            tabPage1 = new TabPage();
+            textBox1 = new TextBox();
+            tabControl1 = new TabControl();
+            tabPage4 = new TabPage();
+            textBoxSupportText = new TextBox();
+            labelProductName = new Label();
+            labelVersion = new Label();
+            labelCopyright = new Label();
+            ((System.ComponentModel.ISupportInitialize)logoPictureBox).BeginInit();
+            tabPage3.SuspendLayout();
+            tabPage2.SuspendLayout();
+            tabPage1.SuspendLayout();
+            tabControl1.SuspendLayout();
+            tabPage4.SuspendLayout();
+            SuspendLayout();
             // 
             // logoPictureBox
             // 
-            this.logoPictureBox.Image = ((System.Drawing.Image)(resources.GetObject("logoPictureBox.Image")));
-            this.logoPictureBox.Location = new System.Drawing.Point(16, 15);
-            this.logoPictureBox.Margin = new System.Windows.Forms.Padding(4);
-            this.logoPictureBox.Name = "logoPictureBox";
-            this.logoPictureBox.Size = new System.Drawing.Size(101, 96);
-            this.logoPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.logoPictureBox.TabIndex = 12;
-            this.logoPictureBox.TabStop = false;
+            logoPictureBox.Image = (System.Drawing.Image)resources.GetObject("logoPictureBox.Image");
+            logoPictureBox.Location = new System.Drawing.Point(16, 19);
+            logoPictureBox.Margin = new Padding(4, 5, 4, 5);
+            logoPictureBox.Name = "logoPictureBox";
+            logoPictureBox.Size = new System.Drawing.Size(101, 96);
+            logoPictureBox.SizeMode = PictureBoxSizeMode.AutoSize;
+            logoPictureBox.TabIndex = 12;
+            logoPictureBox.TabStop = false;
             // 
             // okButton
             // 
-            this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.okButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.okButton.Location = new System.Drawing.Point(627, 346);
-            this.okButton.Margin = new System.Windows.Forms.Padding(4);
-            this.okButton.Name = "okButton";
-            this.okButton.Size = new System.Drawing.Size(100, 30);
-            this.okButton.TabIndex = 24;
-            this.okButton.Text = "&OK";
+            okButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            okButton.DialogResult = DialogResult.Cancel;
+            okButton.Location = new System.Drawing.Point(627, 432);
+            okButton.Margin = new Padding(4, 5, 4, 5);
+            okButton.Name = "okButton";
+            okButton.Size = new System.Drawing.Size(100, 38);
+            okButton.TabIndex = 24;
+            okButton.Text = "&OK";
             // 
             // linkLabelCompany
             // 
-            this.linkLabelCompany.AutoSize = true;
-            this.linkLabelCompany.Location = new System.Drawing.Point(236, 100);
-            this.linkLabelCompany.Margin = new System.Windows.Forms.Padding(8, 0, 4, 0);
-            this.linkLabelCompany.Name = "linkLabelCompany";
-            this.linkLabelCompany.Size = new System.Drawing.Size(119, 16);
-            this.linkLabelCompany.TabIndex = 26;
-            this.linkLabelCompany.TabStop = true;
-            this.linkLabelCompany.Text = "linkLabelCompany";
-            this.linkLabelCompany.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.linkLabelCompany.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelCompany2_LinkClicked);
+            linkLabelCompany.AutoSize = true;
+            linkLabelCompany.Location = new System.Drawing.Point(236, 125);
+            linkLabelCompany.Margin = new Padding(8, 0, 4, 0);
+            linkLabelCompany.Name = "linkLabelCompany";
+            linkLabelCompany.Size = new System.Drawing.Size(131, 20);
+            linkLabelCompany.TabIndex = 26;
+            linkLabelCompany.TabStop = true;
+            linkLabelCompany.Text = "linkLabelCompany";
+            linkLabelCompany.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            linkLabelCompany.LinkClicked += linkLabelCompany2_LinkClicked;
             // 
             // linkLabelCompany2
             // 
-            this.linkLabelCompany2.AutoSize = true;
-            this.linkLabelCompany2.Location = new System.Drawing.Point(236, 126);
-            this.linkLabelCompany2.Margin = new System.Windows.Forms.Padding(8, 0, 4, 0);
-            this.linkLabelCompany2.Name = "linkLabelCompany2";
-            this.linkLabelCompany2.Size = new System.Drawing.Size(126, 16);
-            this.linkLabelCompany2.TabIndex = 27;
-            this.linkLabelCompany2.TabStop = true;
-            this.linkLabelCompany2.Text = "linkLabelCompany2";
-            this.linkLabelCompany2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.linkLabelCompany2.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelCompany2_LinkClicked);
+            linkLabelCompany2.AutoSize = true;
+            linkLabelCompany2.Location = new System.Drawing.Point(236, 158);
+            linkLabelCompany2.Margin = new Padding(8, 0, 4, 0);
+            linkLabelCompany2.Name = "linkLabelCompany2";
+            linkLabelCompany2.Size = new System.Drawing.Size(139, 20);
+            linkLabelCompany2.TabIndex = 27;
+            linkLabelCompany2.TabStop = true;
+            linkLabelCompany2.Text = "linkLabelCompany2";
+            linkLabelCompany2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            linkLabelCompany2.LinkClicked += linkLabelCompany2_LinkClicked;
             // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.richTextBox1);
-            this.tabPage3.Location = new System.Drawing.Point(4, 29);
-            this.tabPage3.Margin = new System.Windows.Forms.Padding(4);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Size = new System.Drawing.Size(708, 141);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "Acknowledgements";
-            this.tabPage3.UseVisualStyleBackColor = true;
+            tabPage3.Controls.Add(richTextBox1);
+            tabPage3.Location = new System.Drawing.Point(4, 29);
+            tabPage3.Margin = new Padding(4, 5, 4, 5);
+            tabPage3.Name = "tabPage3";
+            tabPage3.Size = new System.Drawing.Size(708, 185);
+            tabPage3.TabIndex = 2;
+            tabPage3.Text = "Acknowledgements";
+            tabPage3.UseVisualStyleBackColor = true;
             // 
             // richTextBox1
             // 
-            this.richTextBox1.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.richTextBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.richTextBox1.Cursor = System.Windows.Forms.Cursors.IBeam;
-            this.richTextBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.richTextBox1.Location = new System.Drawing.Point(0, 0);
-            this.richTextBox1.Margin = new System.Windows.Forms.Padding(4);
-            this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.ReadOnly = true;
-            this.richTextBox1.Size = new System.Drawing.Size(708, 141);
-            this.richTextBox1.TabIndex = 0;
-            this.richTextBox1.Text = resources.GetString("richTextBox1.Text");
-            this.richTextBox1.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.richTextBox1_LinkClicked);
+            richTextBox1.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            richTextBox1.BorderStyle = BorderStyle.None;
+            richTextBox1.Cursor = Cursors.IBeam;
+            richTextBox1.Dock = DockStyle.Fill;
+            richTextBox1.Location = new System.Drawing.Point(0, 0);
+            richTextBox1.Margin = new Padding(4, 5, 4, 5);
+            richTextBox1.Name = "richTextBox1";
+            richTextBox1.ReadOnly = true;
+            richTextBox1.Size = new System.Drawing.Size(708, 185);
+            richTextBox1.TabIndex = 0;
+            richTextBox1.Text = resources.GetString("richTextBox1.Text");
+            richTextBox1.LinkClicked += richTextBox1_LinkClicked;
             // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this.textBox2);
-            this.tabPage2.Location = new System.Drawing.Point(4, 29);
-            this.tabPage2.Margin = new System.Windows.Forms.Padding(4);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(4);
-            this.tabPage2.Size = new System.Drawing.Size(708, 141);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "License";
-            this.tabPage2.UseVisualStyleBackColor = true;
+            tabPage2.Controls.Add(textBox2);
+            tabPage2.Location = new System.Drawing.Point(4, 29);
+            tabPage2.Margin = new Padding(4, 5, 4, 5);
+            tabPage2.Name = "tabPage2";
+            tabPage2.Padding = new Padding(4, 5, 4, 5);
+            tabPage2.Size = new System.Drawing.Size(708, 185);
+            tabPage2.TabIndex = 1;
+            tabPage2.Text = "License";
+            tabPage2.UseVisualStyleBackColor = true;
             // 
             // textBox2
             // 
-            this.textBox2.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.textBox2.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.textBox2.Cursor = System.Windows.Forms.Cursors.IBeam;
-            this.textBox2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox2.Location = new System.Drawing.Point(4, 4);
-            this.textBox2.Margin = new System.Windows.Forms.Padding(8, 4, 4, 4);
-            this.textBox2.Multiline = true;
-            this.textBox2.Name = "textBox2";
-            this.textBox2.ReadOnly = true;
-            this.textBox2.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBox2.Size = new System.Drawing.Size(700, 133);
-            this.textBox2.TabIndex = 25;
-            this.textBox2.TabStop = false;
-            this.textBox2.Text = resources.GetString("textBox2.Text");
+            textBox2.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            textBox2.BorderStyle = BorderStyle.None;
+            textBox2.Cursor = Cursors.IBeam;
+            textBox2.Dock = DockStyle.Fill;
+            textBox2.Location = new System.Drawing.Point(4, 5);
+            textBox2.Margin = new Padding(8, 5, 4, 5);
+            textBox2.Multiline = true;
+            textBox2.Name = "textBox2";
+            textBox2.ReadOnly = true;
+            textBox2.ScrollBars = ScrollBars.Both;
+            textBox2.Size = new System.Drawing.Size(700, 175);
+            textBox2.TabIndex = 25;
+            textBox2.TabStop = false;
+            textBox2.Text = resources.GetString("textBox2.Text");
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.textBox1);
-            this.tabPage1.Location = new System.Drawing.Point(4, 29);
-            this.tabPage1.Margin = new System.Windows.Forms.Padding(4);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(4);
-            this.tabPage1.Size = new System.Drawing.Size(708, 141);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "About";
-            this.tabPage1.UseVisualStyleBackColor = true;
+            tabPage1.Controls.Add(textBox1);
+            tabPage1.Location = new System.Drawing.Point(4, 29);
+            tabPage1.Margin = new Padding(4, 5, 4, 5);
+            tabPage1.Name = "tabPage1";
+            tabPage1.Padding = new Padding(4, 5, 4, 5);
+            tabPage1.Size = new System.Drawing.Size(708, 185);
+            tabPage1.TabIndex = 0;
+            tabPage1.Text = "About";
+            tabPage1.UseVisualStyleBackColor = true;
             // 
             // textBox1
             // 
-            this.textBox1.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.textBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.textBox1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.textBox1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.textBox1.Location = new System.Drawing.Point(4, 4);
-            this.textBox1.Margin = new System.Windows.Forms.Padding(8, 4, 4, 4);
-            this.textBox1.Multiline = true;
-            this.textBox1.Name = "textBox1";
-            this.textBox1.ReadOnly = true;
-            this.textBox1.Size = new System.Drawing.Size(700, 133);
-            this.textBox1.TabIndex = 24;
-            this.textBox1.TabStop = false;
-            this.textBox1.Text = resources.GetString("textBox1.Text");
+            textBox1.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            textBox1.BorderStyle = BorderStyle.None;
+            textBox1.Dock = DockStyle.Fill;
+            textBox1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
+            textBox1.Location = new System.Drawing.Point(4, 5);
+            textBox1.Margin = new Padding(8, 5, 4, 5);
+            textBox1.Multiline = true;
+            textBox1.Name = "textBox1";
+            textBox1.ReadOnly = true;
+            textBox1.Size = new System.Drawing.Size(700, 175);
+            textBox1.TabIndex = 24;
+            textBox1.TabStop = false;
+            textBox1.Text = resources.GetString("textBox1.Text");
             // 
             // tabControl1
             // 
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Controls.Add(this.tabPage3);
-            this.tabControl1.Controls.Add(this.tabPage4);
-            this.tabControl1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.tabControl1.Location = new System.Drawing.Point(16, 160);
-            this.tabControl1.Margin = new System.Windows.Forms.Padding(4);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(716, 174);
-            this.tabControl1.TabIndex = 25;
+            tabControl1.Controls.Add(tabPage1);
+            tabControl1.Controls.Add(tabPage2);
+            tabControl1.Controls.Add(tabPage3);
+            tabControl1.Controls.Add(tabPage4);
+            tabControl1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
+            tabControl1.Location = new System.Drawing.Point(16, 200);
+            tabControl1.Margin = new Padding(4, 5, 4, 5);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new System.Drawing.Size(716, 218);
+            tabControl1.TabIndex = 25;
             // 
             // tabPage4
             // 
-            this.tabPage4.Controls.Add(this.textBoxSupportText);
-            this.tabPage4.Location = new System.Drawing.Point(4, 29);
-            this.tabPage4.Margin = new System.Windows.Forms.Padding(4);
-            this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(4);
-            this.tabPage4.Size = new System.Drawing.Size(708, 141);
-            this.tabPage4.TabIndex = 3;
-            this.tabPage4.Text = "Diagnostics";
-            this.tabPage4.UseVisualStyleBackColor = true;
+            tabPage4.Controls.Add(textBoxSupportText);
+            tabPage4.Location = new System.Drawing.Point(4, 29);
+            tabPage4.Margin = new Padding(4, 5, 4, 5);
+            tabPage4.Name = "tabPage4";
+            tabPage4.Padding = new Padding(4, 5, 4, 5);
+            tabPage4.Size = new System.Drawing.Size(708, 185);
+            tabPage4.TabIndex = 3;
+            tabPage4.Text = "Diagnostics";
+            tabPage4.UseVisualStyleBackColor = true;
             // 
             // textBoxSupportText
             // 
-            this.textBoxSupportText.Location = new System.Drawing.Point(8, 7);
-            this.textBoxSupportText.Margin = new System.Windows.Forms.Padding(4);
-            this.textBoxSupportText.Multiline = true;
-            this.textBoxSupportText.Name = "textBoxSupportText";
-            this.textBoxSupportText.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.textBoxSupportText.Size = new System.Drawing.Size(688, 127);
-            this.textBoxSupportText.TabIndex = 0;
+            textBoxSupportText.Location = new System.Drawing.Point(8, 9);
+            textBoxSupportText.Margin = new Padding(4, 5, 4, 5);
+            textBoxSupportText.Multiline = true;
+            textBoxSupportText.Name = "textBoxSupportText";
+            textBoxSupportText.ScrollBars = ScrollBars.Both;
+            textBoxSupportText.Size = new System.Drawing.Size(688, 158);
+            textBoxSupportText.TabIndex = 0;
             // 
             // labelProductName
             // 
-            this.labelProductName.AutoSize = true;
-            this.labelProductName.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelProductName.Location = new System.Drawing.Point(236, 15);
-            this.labelProductName.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.labelProductName.Name = "labelProductName";
-            this.labelProductName.Size = new System.Drawing.Size(104, 20);
-            this.labelProductName.TabIndex = 28;
-            this.labelProductName.Text = "Product Name";
+            labelProductName.AutoSize = true;
+            labelProductName.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
+            labelProductName.Location = new System.Drawing.Point(236, 19);
+            labelProductName.Margin = new Padding(4, 0, 4, 0);
+            labelProductName.Name = "labelProductName";
+            labelProductName.Size = new System.Drawing.Size(104, 20);
+            labelProductName.TabIndex = 28;
+            labelProductName.Text = "Product Name";
             // 
             // labelVersion
             // 
-            this.labelVersion.AutoSize = true;
-            this.labelVersion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelVersion.Location = new System.Drawing.Point(236, 43);
-            this.labelVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.labelVersion.Name = "labelVersion";
-            this.labelVersion.Size = new System.Drawing.Size(57, 20);
-            this.labelVersion.TabIndex = 29;
-            this.labelVersion.Text = "Version";
+            labelVersion.AutoSize = true;
+            labelVersion.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
+            labelVersion.Location = new System.Drawing.Point(236, 54);
+            labelVersion.Margin = new Padding(4, 0, 4, 0);
+            labelVersion.Name = "labelVersion";
+            labelVersion.Size = new System.Drawing.Size(57, 20);
+            labelVersion.TabIndex = 29;
+            labelVersion.Text = "Version";
             // 
             // labelCopyright
             // 
-            this.labelCopyright.AutoSize = true;
-            this.labelCopyright.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelCopyright.Location = new System.Drawing.Point(236, 71);
-            this.labelCopyright.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.labelCopyright.Name = "labelCopyright";
-            this.labelCopyright.Size = new System.Drawing.Size(74, 20);
-            this.labelCopyright.TabIndex = 30;
-            this.labelCopyright.Text = "Copyright";
+            labelCopyright.AutoSize = true;
+            labelCopyright.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, 0);
+            labelCopyright.Location = new System.Drawing.Point(236, 89);
+            labelCopyright.Margin = new Padding(4, 0, 4, 0);
+            labelCopyright.Name = "labelCopyright";
+            labelCopyright.Size = new System.Drawing.Size(74, 20);
+            labelCopyright.TabIndex = 30;
+            labelCopyright.Text = "Copyright";
             // 
             // AboutBox
             // 
-            this.AcceptButton = this.okButton;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(745, 390);
-            this.Controls.Add(this.labelCopyright);
-            this.Controls.Add(this.labelVersion);
-            this.Controls.Add(this.labelProductName);
-            this.Controls.Add(this.linkLabelCompany);
-            this.Controls.Add(this.linkLabelCompany2);
-            this.Controls.Add(this.okButton);
-            this.Controls.Add(this.logoPictureBox);
-            this.Controls.Add(this.tabControl1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.Margin = new System.Windows.Forms.Padding(4);
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "AboutBox";
-            this.Padding = new System.Windows.Forms.Padding(12, 11, 12, 11);
-            this.ShowIcon = false;
-            this.ShowInTaskbar = false;
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "About SuperXPuTTY";
-            ((System.ComponentModel.ISupportInitialize)(this.logoPictureBox)).EndInit();
-            this.tabPage3.ResumeLayout(false);
-            this.tabPage2.ResumeLayout(false);
-            this.tabPage2.PerformLayout();
-            this.tabPage1.ResumeLayout(false);
-            this.tabPage1.PerformLayout();
-            this.tabControl1.ResumeLayout(false);
-            this.tabPage4.ResumeLayout(false);
-            this.tabPage4.PerformLayout();
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AcceptButton = okButton;
+            AutoScaleDimensions = new System.Drawing.SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new System.Drawing.Size(745, 488);
+            Controls.Add(labelCopyright);
+            Controls.Add(labelVersion);
+            Controls.Add(labelProductName);
+            Controls.Add(linkLabelCompany);
+            Controls.Add(linkLabelCompany2);
+            Controls.Add(okButton);
+            Controls.Add(logoPictureBox);
+            Controls.Add(tabControl1);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            Margin = new Padding(4, 5, 4, 5);
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "AboutBox";
+            Padding = new Padding(12, 14, 12, 14);
+            ShowIcon = false;
+            ShowInTaskbar = false;
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "About SuperXPuTTY";
+            ((System.ComponentModel.ISupportInitialize)logoPictureBox).EndInit();
+            tabPage3.ResumeLayout(false);
+            tabPage2.ResumeLayout(false);
+            tabPage2.PerformLayout();
+            tabPage1.ResumeLayout(false);
+            tabPage1.PerformLayout();
+            tabControl1.ResumeLayout(false);
+            tabPage4.ResumeLayout(false);
+            tabPage4.PerformLayout();
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 
