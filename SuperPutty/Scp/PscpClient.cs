@@ -263,9 +263,9 @@ namespace SuperPutty.Scp
                 sb.Append("-pw ").Append(password).Append(" ");
             }
 
-            if (!string.IsNullOrEmpty(session.ExtraArgs.ToString()))
+            if (!string.IsNullOrEmpty(session.ExtraArgs))
             {
-                sb.AppendFormat(" {0} ", session.ExtraArgs.ToString());
+                sb.AppendFormat(" {0} ", session.ExtraArgs);
             }
 
             sb.AppendFormat("-P {0} ", session.Port);
