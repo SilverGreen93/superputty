@@ -487,8 +487,8 @@ namespace SuperPutty.Gui
 
         private int MeasureHeight_Document()
         {
-            int height = Math.Max(Math.Max(TextFont.Height, DocumentIconHeight) + Scale(10),
-                ButtonOverflow.Height + DocumentButtonGapTop + DocumentButtonGapBottom)
+            int height = Math.Max(Math.Max(TextFont.Height, DocumentIconHeight) + Scale(4),
+                Scale(16) + DocumentButtonGapTop + DocumentButtonGapBottom)
                 + DocumentStripGapBottom + DocumentStripGapTop;
 
             return height;
