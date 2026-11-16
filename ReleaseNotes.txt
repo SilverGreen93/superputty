@@ -3,6 +3,7 @@
  - Implement embedded terminal for faster and more stable terminal opening
  - Fixed the annoying double click to focus between terminal and main UI
  - Fixed DPI isses when moving between 2 screens or opening via RDP
+ - Fixed the sessions search box overlapping the search button after a screen dpi change
  - Make VNC terminals more stable and prevent flashing
  - Move default settings location to %AppData%\SuperXPuTTY (current settings remain unaffected)
  - Installer now install the app in %LocalAppData%\Programs\SuperXPuTTY for a non-administrative install
