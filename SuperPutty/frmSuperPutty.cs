@@ -1898,6 +1898,47 @@ namespace SuperPutty
             menuStrip1.Visible = SuperPuTTY.Settings.ShowMenuBar;
         }
 
+        /// <summary>Leading "v" plus up to four dot separated numbers, e.g. v3.0 or v2.1.1.0</summary>
+        private static readonly Regex TagVersionRegex = new Regex(@"^v?(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:\.(\d+))?", RegexOptions.Compiled);
+
+        /// <summary>
+        /// Turns a release tag into a Version. Tags may have any number of components from two to
+        /// four (v3.0 and v2.1.1.0 are both valid), and the missing ones are filled with 0 rather
+        /// than left undefined - System.Version compares undefined components as -1, which would
+        /// rank a tag such as v3.0 below an assembly version of 3.0.0.0 and hide the update.
+        /// Returns null when the tag does not look like a version at all.
+        /// </summary>
+        /// <param name="tag">The tag_name reported by the GitHub release</param>
+        /// <returns>The version, or null if the tag cannot be parsed</returns>
+        private static Version ParseTagVersion(string tag)
+        {
+            if (string.IsNullOrWhiteSpace(tag))
+            {
+                return null;
+            }
+
+            Match match = TagVersionRegex.Match(tag.Trim());
+            if (!match.Success)
+            {
+                return null;
+            }
+
+            try
+            {
+                return new Version(
+                    int.Parse(match.Groups[1].Value),
+                    match.Groups[2].Success ? int.Parse(match.Groups[2].Value) : 0,
+                    match.Groups[3].Success ? int.Parse(match.Groups[3].Value) : 0,
+                    match.Groups[4].Success ? int.Parse(match.Groups[4].Value) : 0);
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                // a component too large for System.Version (build/revision are limited to 65535)
+                Log.Warn("An Exception occurred while parsing the release tag " + tag + ": " + ex.Message);
+                return null;
+            }
+        }
+
         /// <summary>Check for a newer version of SuperXPuTTY</summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -1916,10 +1957,15 @@ namespace SuperPutty
                         GitRelease latest = (GitRelease)js.ReadObject(ms);
                         ms.Close();
 
-                        Version latest_version = new Version(latest.version.Trim().Substring(1)); // skip the 'v' prefix
+                        Version latest_version = ParseTagVersion(latest.version);
                         Version SuperPuTTY_version = new Version(SuperPuTTY.Version);
 
-                        if (latest_version.CompareTo(SuperPuTTY_version) > 0)
+                        if (latest_version == null)
+                        {
+                            Log.Warn("The SuperXPuTTY release tag is not a version: " + latest.version);
+                            ShowMessageBox("There was an error while checking for updates. Please try again later.", "Error during update check", MessageBoxButtons.OK, MsgIcon.Warning);
+                        }
+                        else if (latest_version.CompareTo(SuperPuTTY_version) > 0)
                         {
                             Log.Info("New SuperXPuTTY version found: " + latest.version);
 
