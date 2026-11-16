@@ -363,9 +363,31 @@ namespace SuperPutty
             }
 
             string settingsDir = textBoxSettingsFolder.Text;
-            if (String.IsNullOrEmpty(settingsDir) || !Directory.Exists(settingsDir))
+            if (String.IsNullOrEmpty(settingsDir))
             {
                 errors.Add("Settings Folder must be set to valid directory");
+            }
+            else if (!Directory.Exists(settingsDir))
+            {
+                if (Messenger.MessageBox(String.Format("The settings folder does not exist:\n{0}\n\nDo you want to create it?", settingsDir),
+                    "Create Settings Folder", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(settingsDir);
+                        Log.InfoFormat("Created settings dir: {0}", settingsDir);
+                        SuperPuTTY.Settings.SettingsFolder = settingsDir;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.ErrorFormat("Error creating settings dir: {0} ({1})", settingsDir, ex.Message);
+                        errors.Add(String.Format("Unable to create Settings Folder ({0}): {1}", settingsDir, ex.Message));
+                    }
+                }
+                else
+                {
+                    errors.Add("Settings Folder must be set to valid directory");
+                }
             }
             else
             {
