@@ -1,0 +1,150 @@
+name: Release
+
+# Pushing a tag such as v3.0 publishes a GitHub Release named "SuperXPuTTY 3.0"
+# containing the portable build (SuperXPuTTY-3.0.zip, putty-embed.dll included)
+# and the WiX installer (SuperXPuTTY-3.0.msi).
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release, e.g. v3.0'
+        required: true
+        default: 'v3.0'
+
+permissions:
+  contents: write
+
+env:
+  PRODUCT: SuperXPuTTY
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  release:
+    name: Release
+    # Windows Server 2025 with Visual Studio 2026, CMake and MSVC on PATH, the
+    # same toolchain the ci.yml build job uses.
+    runs-on: windows-latest
+
+    steps:
+      - name: Resolve tag and version
+        # RELEASE_TAG/VERSION are used by every later step; a tag push gives
+        # v3.0 / 3.0, the manual run takes the tag from the input.
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            tag="$INPUT_TAG"
+          else
+            tag="$GITHUB_REF_NAME"
+          fi
+          case "$tag" in
+            v[0-9]*) ;;
+            *) echo "Unsupported tag: $tag"; exit 1 ;;
+          esac
+          echo "RELEASE_TAG=$tag" >> "$GITHUB_ENV"
+          echo "VERSION=${tag#v}" >> "$GITHUB_ENV"
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # SuperPutty.csproj builds putty-embed.dll from the putty submodule.
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.wixproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      # Builds the app, the unit tests and the WiX installer; the installer msi is
+      # picked up from this output further down.
+      - name: Build SuperPutty.sln (Release)
+        run: dotnet build SuperPutty.sln --configuration Release
+
+      - name: Assemble portable app
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet publish SuperPutty/SuperPutty.csproj --configuration Release --output publish
+          # SuperPutty.csproj copies putty-embed.dll into the build output only, so
+          # the published folder needs it added explicitly.
+          dll="$(find putty/build -name putty-embed.dll -type f | head -n 1)"
+          test -n "$dll"
+          cp "$dll" publish/
+          ls -l publish
+
+      - name: Name the installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          msi="$(find SuperPuttyInstaller/bin -name '*.msi' -type f | head -n 1)"
+          test -n "$msi"
+          cp "$msi" "$PRODUCT-$VERSION.msi"
+          ls -l "$PRODUCT-$VERSION.msi"
+
+      - name: Zip the portable app
+        shell: pwsh
+        run: Compress-Archive -Path 'publish/*' -DestinationPath "$env:PRODUCT-$env:VERSION.zip" -Force
+
+      - name: Check the release packages
+        shell: pwsh
+        run: |
+          $missing = @()
+          foreach ($file in "$env:PRODUCT-$env:VERSION.zip", "$env:PRODUCT-$env:VERSION.msi") {
+            if (-not (Test-Path $file)) { $missing += $file }
+          }
+          if ($missing) {
+            "Missing release package: $($missing -join ', ')"
+            exit 1
+          }
+
+      - name: Collect release notes
+        # The ReleaseNotes.txt section for this version, if there is one; otherwise
+        # gh generates the notes from the commits since the previous release.
+        shell: bash
+        run: |
+          set -euo pipefail
+          awk -v want="$VERSION" '
+            { line = $0; sub(/\r$/, "", line); gsub(/^[ \t]+|[ \t]+$/, "", line) }
+            line ~ /^[0-9][0-9.]*$/ { if (found) exit; if (line == want) { found = 1; next } }
+            found { print line }
+          ' ReleaseNotes.txt > notes.md
+          if [ -s notes.md ]; then
+            echo "NOTES_FILE=notes.md" >> "$GITHUB_ENV"
+            echo "Release notes taken from ReleaseNotes.txt ($VERSION):"
+            cat notes.md
+          else
+            echo "No ReleaseNotes.txt section for $VERSION, generating notes from commits"
+          fi
+
+      - name: Create GitHub Release
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=("$PRODUCT-$VERSION.zip" "$PRODUCT-$VERSION.msi")
+          notes=()
+          [ -n "${NOTES_FILE:-}" ] && notes=(--notes-file "$NOTES_FILE")
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            # re-running this workflow replaces the packages instead of failing
+            gh release edit "$RELEASE_TAG" --title "$PRODUCT $VERSION" ${notes[@]+"${notes[@]}"}
+            gh release upload "$RELEASE_TAG" "${files[@]}" --clobber
+          elif [ ${#notes[@]} -gt 0 ]; then
+            gh release create "$RELEASE_TAG" "${files[@]}" --title "$PRODUCT $VERSION" "${notes[@]}"
+          else
+            gh release create "$RELEASE_TAG" "${files[@]}" --title "$PRODUCT $VERSION" --generate-notes
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
