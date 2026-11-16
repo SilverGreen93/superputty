@@ -17,7 +17,7 @@ namespace SuperPutty
             InitializeComponent();
             this.Text = String.Format("About {0}", AssemblyTitle);
             this.labelProductName.Text = AssemblyProduct;
-            this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
+            this.labelVersion.Text = String.Format("Version {0}", SuperPuTTY.DisplayVersion);
             this.labelCopyright.Text = AssemblyCopyright;
             this.linkLabelCompany.Text = AssemblyCompany;
             this.linkLabelCompany2.Text = "https://github.com/SilverGreen93/superputty";
@@ -57,8 +57,6 @@ namespace SuperPutty
                 return System.IO.Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location);
             }
         }
-
-        public string AssemblyVersion { get { return Assembly.GetExecutingAssembly().GetName().Version.ToString(); } }
 
         public string AssemblyDescription
         {

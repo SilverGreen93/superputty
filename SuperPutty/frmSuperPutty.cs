@@ -131,7 +131,7 @@ namespace SuperPutty
             this.RefreshConnectionToolbarData();
 
             // version in status bar
-            this.toolStripStatusLabelVersion.Text = SuperPuTTY.Version;
+            this.toolStripStatusLabelVersion.Text = SuperPuTTY.DisplayVersion;
 
             // tool windows
             this.sessions = new SingletonToolWindowHelper<SessionTreeview>("Sessions", this.DockPanel, null, x => new SessionTreeview(x.DockPanel));

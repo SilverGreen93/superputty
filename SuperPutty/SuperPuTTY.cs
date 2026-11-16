@@ -932,6 +932,28 @@ namespace SuperPutty
         /// <summary>Returns a string containing the current version of SuperPuTTY</summary>
         public static string Version { get { return Assembly.GetExecutingAssembly().GetName().Version.ToString(); } }
 
+        /// <summary>
+        /// Returns the current version formatted for display. The trailing zero components are
+        /// dropped so that 3.0.0.0 is shown as 3.0, while a real patch level such as 3.0.1.0 is
+        /// still shown as 3.0.1. Major and minor are always shown.
+        /// </summary>
+        public static string DisplayVersion { get { return FormatVersion(Assembly.GetExecutingAssembly().GetName().Version); } }
+
+        /// <summary>Formats a version without its trailing zero components, e.g. 3.0.0.0 is shown as 3.0</summary>
+        /// <param name="version">The version to format</param>
+        public static string FormatVersion(Version version)
+        {
+            // undefined components (-1) are as good as zero here
+            int[] parts = { Math.Max(version.Major, 0), Math.Max(version.Minor, 0),
+                            Math.Max(version.Build, 0), Math.Max(version.Revision, 0) };
+            int shown = parts.Length;
+            while (shown > 2 && parts[shown - 1] == 0)
+            {
+                shown--;
+            }
+            return string.Join(".", parts.Take(shown).Select(part => part.ToString()));
+        }
+
         internal static Settings Settings { get { return Settings.Default; } }
         public static frmSuperPutty MainForm { get; set; }        
         public static string LayoutsDir { get { return Path.Combine(Settings.SettingsFolder, "layouts"); } }
