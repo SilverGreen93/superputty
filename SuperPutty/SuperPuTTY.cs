@@ -42,6 +42,10 @@ namespace SuperPutty
         {
             MigrateSettingsFolder();
 
+            // nothing has to be asked of the user before the first run when the embedded PuTTY
+            // is used, so the first run setup is done here instead of by the setup dialog
+            bool firstRunSetup = PerformFirstRunSetup();
+
             Log.InfoFormat($"Initializing.  Version={Version}, UserSettings={Settings.SettingsFilePath}, SettingsFolder={Settings.SettingsFolder}");
 
             Images = LoadImageList("default", false);
@@ -88,7 +92,7 @@ namespace SuperPutty
                 }
 
                 // if nothing specified, then try the default layout
-                if (StartingLayout == null && StartingSession == null)
+                if (!firstRunSetup && StartingLayout == null && StartingSession == null)
                 {
                     StartingLayout = FindLayout(Settings.DefaultLayoutName);
                     if (StartingLayout != null)
@@ -103,6 +107,57 @@ namespace SuperPutty
             WindowEvents = new GlobalWindowEvents();
 
             Log.Info("Initialized");
+        }
+
+        /// <summary>
+        /// Does the setup that used to be done by the setup dialog when it was shown at startup:
+        /// chooses the settings folder and takes over the settings and sessions of older versions.
+        /// Only the embedded PuTTY can be started without the dialog, an external PuTTY that
+        /// cannot be found still needs it and the dialog then does this itself.
+        /// </summary>
+        /// <returns>true if this run of the application did the setup</returns>
+        private static bool PerformFirstRunSetup()
+        {
+            if (!PuttyEmbed.IsEnabled || !IsFirstRun)
+            {
+                return false;
+            }
+
+            if (String.IsNullOrEmpty(Settings.SettingsFolder))
+            {
+                string dir = DefaultSettingsFolder;
+                try
+                {
+                    Log.InfoFormat($"First run, using the default settings folder: {dir}");
+                    Directory.CreateDirectory(dir);
+                    Settings.SettingsFolder = dir;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("Error creating the settings folder " + dir, ex);
+                    return false;
+                }
+            }
+
+            Settings.ImportFromRegistry();
+
+            // the auto-restore layout saves the windows of the application when it is closed
+            if (String.IsNullOrEmpty(Settings.DefaultLayoutName))
+            {
+                Settings.DefaultLayoutName = LayoutData.AutoRestore;
+            }
+
+            Settings.Save();
+
+            if (Sessions.Count == 0)
+            {
+                ImportSessionsFromSuperPutty1030();
+            }
+
+            // the setup is done, IsFirstRun has to be calculated again: it is now false unless
+            // an external PuTTY is used and its executable is still missing
+            isFirstRun = null;
+            return true;
         }
 
         /// <summary>Called when application is shutting down, sends message to log.</summary>
@@ -901,14 +956,14 @@ namespace SuperPutty
         #endregion
 
         #region Properties
-        /// <summary>true if the application has not defined where the required putty program is located</summary>
+        /// <summary>true if the application has not been set up yet</summary>
         public static bool IsFirstRun {
             get
             {
                 if (isFirstRun == null)
                 {
-                    // With the embedded PuTTY no putty.exe is needed; the setup dialog
-                    // always sets the settings folder, so that marks setup as done.
+                    // With the embedded PuTTY no putty.exe is needed; the settings folder, set by
+                    // PerformFirstRunSetup or by the setup dialog, marks setup as done.
                     isFirstRun = PuttyEmbed.IsEnabled
                         ? string.IsNullOrEmpty(Settings.SettingsFolder)
                         : string.IsNullOrEmpty(Settings.PuttyExe);

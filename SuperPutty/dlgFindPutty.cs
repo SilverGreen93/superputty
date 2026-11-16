@@ -605,36 +605,41 @@ namespace SuperPutty
         }
 
         /// <summary>
-        /// Check that putty can be found.  If not, prompt the user
+        /// Check that an external putty can be found. If not, prompt the user. The embedded
+        /// PuTTY needs no putty.exe, so the setup dialog is not shown at startup any more; it is
+        /// opened from Tools -&gt; Options, and the first run setup is done by
+        /// <see cref="SuperPuTTY.Initialize"/>.
         /// </summary>
         public static void PuttyCheck()
         {
-            bool puttyExeMissing = !PuttyEmbed.IsEnabled &&
-                (String.IsNullOrEmpty(SuperPuTTY.Settings.PuttyExe) || !File.Exists(SuperPuTTY.Settings.PuttyExe));
-            if (SuperPuTTY.IsFirstRun || puttyExeMissing)
+            if (!IsPuttyExeMissing())
             {
-                // first time, try to import old putty settings from registry
-                SuperPuTTY.Settings.ImportFromRegistry();
-                dlgFindPutty dialog = new dlgFindPutty();
-                if (dialog.ShowDialog(SuperPuTTY.MainForm) == DialogResult.Cancel)
-                {
-                    System.Environment.Exit(1);
-                }
+                return;
             }
 
-            if (!PuttyEmbed.IsEnabled && String.IsNullOrEmpty(SuperPuTTY.Settings.PuttyExe))
+            // only an external PuTTY that cannot be found needs this dialog; the old settings
+            // are imported first, they may already point to the executable
+            SuperPuTTY.Settings.ImportFromRegistry();
+            dlgFindPutty dialog = new dlgFindPutty();
+            if (dialog.ShowDialog(SuperPuTTY.MainForm) == DialogResult.Cancel)
+            {
+                System.Environment.Exit(1);
+            }
+
+            if (IsPuttyExeMissing())
             {
                 Messenger.MessageBox("Cannot find PuTTY executable. Please visit https://github.com/SilverGreen93/putty/releases to download a copy",
                     "PuTTY Not Found", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Application.Exit();
                 System.Environment.Exit(1);
             }
+        }
 
-            if (SuperPuTTY.IsFirstRun && SuperPuTTY.Sessions.Count == 0)
-            {
-                // first run, got nothing...try to import from registry
-                SuperPuTTY.ImportSessionsFromSuperPutty1030();
-            }
+        /// <summary>true if an external PuTTY is used and its executable cannot be found</summary>
+        private static bool IsPuttyExeMissing()
+        {
+            return !PuttyEmbed.IsEnabled &&
+                (String.IsNullOrEmpty(SuperPuTTY.Settings.PuttyExe) || !File.Exists(SuperPuTTY.Settings.PuttyExe));
         }
 
         private void buttonBrowseLayoutsFolder_Click(object sender, EventArgs e)
