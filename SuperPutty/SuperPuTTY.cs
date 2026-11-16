@@ -130,6 +130,7 @@ namespace SuperPutty
                 {
                     Log.InfoFormat($"First run, using the default settings folder: {dir}");
                     Directory.CreateDirectory(dir);
+                    ImportSuperPuttySettings(dir);
                     Settings.SettingsFolder = dir;
                 }
                 catch (Exception ex)
@@ -249,6 +250,12 @@ namespace SuperPutty
         /// <summary>Location of the session and layout files used by older versions</summary>
         private static string LegacySettingsFolder { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), SettingsFolderName); } }
 
+        /// <summary>Name of the folder holding the files of the even older SuperPutty releases</summary>
+        private const string LegacySuperPuttyFolderName = "SuperPutty";
+
+        /// <summary>Location of the session and layout files used by the even older SuperPutty releases</summary>
+        private static string LegacySuperPuttySettingsFolder { get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), LegacySuperPuttyFolderName); } }
+
         /// <summary>
         /// Older versions kept the session and layout files in the documents folder.  They are copied
         /// to the application data folder only when the settings file itself is moved there, so a
@@ -331,6 +338,52 @@ namespace SuperPutty
                 return true;
             }
             return false;
+        }
+
+        /// <summary>Checks whether a folder holds the files of an installation of this application</summary>
+        private static bool IsSettingsFolder(string dir)
+        {
+            return Directory.Exists(dir) &&
+                   (File.Exists(Path.Combine(dir, "Sessions.xml")) || Directory.Exists(Path.Combine(dir, "layouts")));
+        }
+
+        /// <summary>
+        /// The even older SuperPutty releases kept their sessions and layouts in a SuperPutty folder in
+        /// the documents folder.  When nothing has been set up yet, the user is asked whether those files
+        /// should be copied into the folder that is used from now on.  They are read only after the copy,
+        /// so the application does not have to be restarted.
+        /// </summary>
+        /// <param name="targetDir">folder receiving the copied files</param>
+        private static void ImportSuperPuttySettings(string targetDir)
+        {
+            string sourceDir = LegacySuperPuttySettingsFolder;
+            if (String.Equals(sourceDir, targetDir, StringComparison.OrdinalIgnoreCase) ||
+                !IsSettingsFolder(sourceDir) || IsSettingsFolder(targetDir))
+            {
+                return;
+            }
+
+            if (Messenger.MessageBox(
+                    $"An older SuperPutty installation has left its settings in\r\n{sourceDir}\r\n\r\nWould you like to import them?",
+                    "Import SuperPutty Settings", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            {
+                Log.InfoFormat($"Not importing the settings from {sourceDir}");
+                return;
+            }
+
+            try
+            {
+                Log.InfoFormat($"Importing settings folder from {sourceDir} to {targetDir}");
+                int copiedFiles = CopySettingsFolder(sourceDir, targetDir);
+                Log.InfoFormat($"Imported {copiedFiles} files from {sourceDir}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Error importing settings folder from " + sourceDir, ex);
+                Messenger.MessageBox(
+                    $"The settings from\r\n{sourceDir}\r\ncould not be imported.",
+                    "Import SuperPutty Settings", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         public static void LoadLayouts()
