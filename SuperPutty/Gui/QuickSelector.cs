@@ -41,7 +41,8 @@ namespace SuperPutty.Gui
             this.Text = string.Format("{0} [{1}]", this.Options.BaseText, this.DataView.Count);
         }
 
-        string FormatFilterString(string text)
+        // static, like the two helpers below, so that the filter can be tested without the form
+        internal static string FormatFilterString(string text)
         {
             string filter = "";
 
@@ -55,7 +56,11 @@ namespace SuperPutty.Gui
                     filter += " AND ";
                 }
 
-                filter += string.Format("([Name] LIKE '%{0}%' OR [Detail] LIKE '%{0}%')", tokenSanitize(token));
+                // the columns the list shows are the columns the box searches, so an ip or a port
+                // finds a session whose name says nothing
+                filter += string.Format(
+                    "([Name] LIKE '%{0}%' OR [Detail] LIKE '%{0}%' OR [Host] LIKE '%{0}%' OR [Port] LIKE '%{0}%')",
+                    tokenSanitize(token));
 
                 i++;
             }
@@ -63,7 +68,7 @@ namespace SuperPutty.Gui
             return filter;
         }
 
-        string[] cleanTokens(string[] tokens)
+        static string[] cleanTokens(string[] tokens)
         {
             int i = tokens.Count(token => token.Length > 0);
 
@@ -81,7 +86,7 @@ namespace SuperPutty.Gui
             return result;
         }
 
-        string tokenSanitize(string token)
+        static string tokenSanitize(string token)
         {
             return sanitizeChars.Aggregate(token, (current, sanitizeChar) => current.Replace(Convert.ToString(sanitizeChar), ""));
         }
@@ -231,8 +236,7 @@ namespace SuperPutty.Gui
             this.dataGridViewData.DataSource = this.DataView;
 
             // configure grid
-            this.nameDataGridViewTextBoxColumn.Visible = this.Options.ShowNameColumn;
-            this.detailDataGridViewTextBoxColumn.Visible = this.Options.ShowDetailColumn;
+            this.ApplyColumnVisibility();
             if (this.Options.ShowDetailColumn && !this.Options.ShowNameColumn)
             {
                 this.detailDataGridViewTextBoxColumn.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
@@ -241,6 +245,25 @@ namespace SuperPutty.Gui
             // update title
             this.UpdateFilter();            
             return ShowDialog(parent);
+        }
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            // the grid brings the bound columns back when it binds, so the columns are applied again here
+            this.ApplyColumnVisibility();
+        }
+
+        void ApplyColumnVisibility()
+        {
+            if (this.Options == null)
+            {
+                return;
+            }
+            this.nameDataGridViewTextBoxColumn.Visible = this.Options.ShowNameColumn;
+            this.detailDataGridViewTextBoxColumn.Visible = this.Options.ShowDetailColumn;
+            this.hostDataGridViewTextBoxColumn.Visible = this.Options.ShowHostColumn;
+            this.portDataGridViewTextBoxColumn.Visible = this.Options.ShowPortColumn;
         }
 
         DataView DataView { get; set; }
@@ -256,6 +279,8 @@ namespace SuperPutty.Gui
         }
         public bool ShowNameColumn { get; set; }
         public bool ShowDetailColumn { get; set; }
+        public bool ShowHostColumn { get; set; }
+        public bool ShowPortColumn { get; set; }
         public string BaseText { get; set; }
         public string Sort { get; set; }
         public bool HighlightMatchingText { get; set; }

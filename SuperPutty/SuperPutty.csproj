@@ -29,6 +29,13 @@
         <PackageReference Include="Microsoft.AspNetCore.SystemWebAdapters" Version="2.3.0" />
   </ItemGroup>
   <ItemGroup>
+    <!-- SuperPuttyUnitTests filters the QuickSelector data without opening the form, which needs the
+         internal QuickSelector.FormatFilterString -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>SuperPuttyUnitTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Update="DarkModeForms\FlatComboBox.cs">
       <SubType>Component</SubType>
     </Compile>

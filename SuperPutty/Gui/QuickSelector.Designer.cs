@@ -30,11 +30,16 @@
         {
             this.components = new System.ComponentModel.Container();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
             this.textBoxData = new System.Windows.Forms.TextBox();
             this.dataGridViewData = new System.Windows.Forms.DataGridView();
             this.itemDataBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.nameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.detailDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.hostDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.portDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.textColorDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.bindingSourceData = new System.Windows.Forms.BindingSource(this.components);
             this.quickSelectorData = new SuperPutty.Gui.QuickSelectorData();
@@ -63,10 +68,12 @@
             this.dataGridViewData.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridViewData.CellBorderStyle = System.Windows.Forms.DataGridViewCellBorderStyle.SingleVertical;
             this.dataGridViewData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridViewData.ColumnHeadersVisible = false;
+            this.dataGridViewData.ColumnHeadersVisible = true;
             this.dataGridViewData.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.nameDataGridViewTextBoxColumn,
             this.detailDataGridViewTextBoxColumn,
+            this.hostDataGridViewTextBoxColumn,
+            this.portDataGridViewTextBoxColumn,
             this.textColorDataGridViewTextBoxColumn});
             this.dataGridViewData.DataSource = this.itemDataBindingSource;
             this.dataGridViewData.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -92,7 +99,7 @@
             // nameDataGridViewTextBoxColumn
             // 
             this.nameDataGridViewTextBoxColumn.DataPropertyName = "Name";
-            this.nameDataGridViewTextBoxColumn.FillWeight = 30F;
+            this.nameDataGridViewTextBoxColumn.FillWeight = 50F;
             this.nameDataGridViewTextBoxColumn.HeaderText = "Name";
             this.nameDataGridViewTextBoxColumn.Name = "nameDataGridViewTextBoxColumn";
             this.nameDataGridViewTextBoxColumn.ReadOnly = true;
@@ -103,9 +110,33 @@
             dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
             this.detailDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle1;
             this.detailDataGridViewTextBoxColumn.FillWeight = 70F;
-            this.detailDataGridViewTextBoxColumn.HeaderText = "Detail";
+            this.detailDataGridViewTextBoxColumn.HeaderText = "Session id";
             this.detailDataGridViewTextBoxColumn.Name = "detailDataGridViewTextBoxColumn";
             this.detailDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // hostDataGridViewTextBoxColumn
+            // 
+            this.hostDataGridViewTextBoxColumn.DataPropertyName = "Host";
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+            this.hostDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
+            this.hostDataGridViewTextBoxColumn.FillWeight = 35F;
+            this.hostDataGridViewTextBoxColumn.HeaderText = "IP";
+            this.hostDataGridViewTextBoxColumn.Name = "hostDataGridViewTextBoxColumn";
+            this.hostDataGridViewTextBoxColumn.ReadOnly = true;
+            this.hostDataGridViewTextBoxColumn.Visible = false;
+            // 
+            // portDataGridViewTextBoxColumn
+            // 
+            this.portDataGridViewTextBoxColumn.DataPropertyName = "Port";
+            dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.portDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle3;
+            dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleRight;
+            this.portDataGridViewTextBoxColumn.HeaderCell.Style = dataGridViewCellStyle4;
+            this.portDataGridViewTextBoxColumn.FillWeight = 15F;
+            this.portDataGridViewTextBoxColumn.HeaderText = "Port";
+            this.portDataGridViewTextBoxColumn.Name = "portDataGridViewTextBoxColumn";
+            this.portDataGridViewTextBoxColumn.ReadOnly = true;
+            this.portDataGridViewTextBoxColumn.Visible = false;
             // 
             // textColorDataGridViewTextBoxColumn
             // 
@@ -129,10 +160,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(334, 244);
+            this.ClientSize = new System.Drawing.Size(400, 260);
             this.Controls.Add(this.dataGridViewData);
             this.Controls.Add(this.textBoxData);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+            this.MinimumSize = new System.Drawing.Size(240, 120);
             this.Name = "QuickSelector";
             this.Opacity = 1.0D;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
@@ -155,6 +187,8 @@
         private QuickSelectorData quickSelectorData;
         private System.Windows.Forms.DataGridViewTextBoxColumn nameDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn detailDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn hostDataGridViewTextBoxColumn;
+        private System.Windows.Forms.DataGridViewTextBoxColumn portDataGridViewTextBoxColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn textColorDataGridViewTextBoxColumn;
 
     }

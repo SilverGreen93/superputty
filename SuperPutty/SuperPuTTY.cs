@@ -15,7 +15,6 @@ using System.Text.RegularExpressions;
 using System.Drawing;
 using SuperPutty.Scp;
 using SuperPuTTY.Scripting;
-using System.Net;
 using System.Net.Http;
 using DarkModeForms;
 

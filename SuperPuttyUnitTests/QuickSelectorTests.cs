@@ -25,7 +25,10 @@ namespace SuperPuttyUnitTests
                 data.ItemData.AddItemDataRow(
                     sd.SessionName, 
                     sd.SessionId, 
-                    sd.Proto == ConnectionProtocol.Cygterm || sd.Proto == ConnectionProtocol.Mintty ? Color.Blue : Color.Black, null);
+                    sd.Proto == ConnectionProtocol.Cygterm || sd.Proto == ConnectionProtocol.Mintty ? Color.Blue : Color.Black, 
+                    null,
+                    sd.Host ?? "",
+                    sd.Port > 0 ? sd.Port.ToString() : "");
             }
 
             QuickSelectorOptions opt = new QuickSelectorOptions();

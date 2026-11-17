@@ -6,6 +6,7 @@
  - Fixed the sessions search box overlapping the search button after a screen dpi change
  - Make VNC terminals more stable and prevent flashing
  - Open a closed panel automatically on mouse hover
+ - Allow searching by IP address from the Open session window
  - Move default settings location to %AppData%\SuperXPuTTY
  - Installer now install the app in %LocalAppData%\Programs\SuperXPuTTY for a non-administrative install
  - Security fixes from PuTTY upstream

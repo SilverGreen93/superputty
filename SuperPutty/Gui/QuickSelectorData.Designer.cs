@@ -291,6 +291,10 @@ namespace SuperPutty.Gui {
             
             private global::System.Data.DataColumn columnTag;
             
+            private global::System.Data.DataColumn columnHost;
+            
+            private global::System.Data.DataColumn columnPort;
+            
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public ItemDataDataTable() {
@@ -360,6 +364,22 @@ namespace SuperPutty.Gui {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public global::System.Data.DataColumn HostColumn {
+                get {
+                    return this.columnHost;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public global::System.Data.DataColumn PortColumn {
+                get {
+                    return this.columnPort;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             [global::System.ComponentModel.Browsable(false)]
             public int Count {
                 get {
@@ -395,13 +415,15 @@ namespace SuperPutty.Gui {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
-            public ItemDataRow AddItemDataRow(string Name, string Detail, object TextColor, object Tag) {
+            public ItemDataRow AddItemDataRow(string Name, string Detail, object TextColor, object Tag, string Host, string Port) {
                 ItemDataRow rowItemDataRow = ((ItemDataRow)(this.NewRow()));
                 object[] columnValuesArray = new object[] {
                         Name,
                         Detail,
                         TextColor,
-                        Tag};
+                        Tag,
+                        Host,
+                        Port};
                 rowItemDataRow.ItemArray = columnValuesArray;
                 base.Rows.Add(rowItemDataRow);
                 return rowItemDataRow;
@@ -428,6 +450,8 @@ namespace SuperPutty.Gui {
                 this.columnDetail = base.Columns["Detail"];
                 this.columnTextColor = base.Columns["TextColor"];
                 this.columnTag = base.Columns["Tag"];
+                this.columnHost = base.Columns["Host"];
+                this.columnPort = base.Columns["Port"];
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -441,6 +465,10 @@ namespace SuperPutty.Gui {
                 base.Columns.Add(this.columnTextColor);
                 this.columnTag = new global::System.Data.DataColumn("Tag", typeof(object), null, global::System.Data.MappingType.Element);
                 base.Columns.Add(this.columnTag);
+                this.columnHost = new global::System.Data.DataColumn("Host", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnHost);
+                this.columnPort = new global::System.Data.DataColumn("Port", typeof(string), null, global::System.Data.MappingType.Element);
+                base.Columns.Add(this.columnPort);
             }
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
@@ -647,6 +675,38 @@ namespace SuperPutty.Gui {
             
             [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public string Host {
+                get {
+                    try {
+                        return ((string)(this[this.tableItemData.HostColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'Host\' in table \'ItemData\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tableItemData.HostColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public string Port {
+                get {
+                    try {
+                        return ((string)(this[this.tableItemData.PortColumn]));
+                    }
+                    catch (global::System.InvalidCastException e) {
+                        throw new global::System.Data.StrongTypingException("The value for column \'Port\' in table \'ItemData\' is DBNull.", e);
+                    }
+                }
+                set {
+                    this[this.tableItemData.PortColumn] = value;
+                }
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public bool IsNameNull() {
                 return this.IsNull(this.tableItemData.NameColumn);
             }
@@ -691,6 +751,30 @@ namespace SuperPutty.Gui {
             [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
             public void SetTagNull() {
                 this[this.tableItemData.TagColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public bool IsHostNull() {
+                return this.IsNull(this.tableItemData.HostColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public void SetHostNull() {
+                this[this.tableItemData.HostColumn] = global::System.Convert.DBNull;
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public bool IsPortNull() {
+                return this.IsNull(this.tableItemData.PortColumn);
+            }
+            
+            [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+            [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Data.Design.TypedDataSetGenerator", "17.0.0.0")]
+            public void SetPortNull() {
+                this[this.tableItemData.PortColumn] = global::System.Convert.DBNull;
             }
         }
         

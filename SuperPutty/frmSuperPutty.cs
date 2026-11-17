@@ -549,13 +549,19 @@ namespace SuperPutty
                     sd.SessionName,
                     sd.SessionId,
                     sd.Proto == ConnectionProtocol.Cygterm || sd.Proto == ConnectionProtocol.Mintty ? Color.Blue : Color.Black,
-                    null);
+                    null,
+                    sd.Host ?? "",
+                    sd.Port > 0 ? sd.Port.ToString() : "");
             }
 
             QuickSelectorOptions opt = new QuickSelectorOptions
             {
-                Sort = data.ItemData.DetailColumn.ColumnName,
-                BaseText = "Open Session"
+                Sort = data.ItemData.NameColumn.ColumnName,
+                BaseText = "Open Session",
+                ShowNameColumn = true,
+                ShowHostColumn = true,
+                ShowPortColumn = true,
+                ShowDetailColumn = false,
             };
 
             QuickSelector d = new QuickSelector();
@@ -583,15 +589,20 @@ namespace SuperPutty
                         panel.Text,
                         sd.SessionId,
                         sd.Proto == ConnectionProtocol.Cygterm || sd.Proto == ConnectionProtocol.Mintty ? Color.Blue : Color.Black,
-                        panel);
+                        panel,
+                        sd.Host ?? "",
+                        sd.Port > 0 ? sd.Port.ToString() : "");
                 }
             }
 
             QuickSelectorOptions opt = new QuickSelectorOptions
             {
-                Sort = data.ItemData.DetailColumn.ColumnName,
+                Sort = data.ItemData.NameColumn.ColumnName,
                 BaseText = "Switch Session",
-                ShowNameColumn = true
+                ShowNameColumn = true,
+                ShowHostColumn = true,
+                ShowPortColumn = true,
+                ShowDetailColumn = false,
             };
 
             QuickSelector d = new QuickSelector();
