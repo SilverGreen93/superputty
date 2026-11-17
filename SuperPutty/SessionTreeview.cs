@@ -1147,23 +1147,42 @@ namespace SuperPutty
             }
             public bool IsMatch(SessionData s)
             {
+                // the port belongs to a session just as its host does, and two sessions on one host
+                // often differ only by it
+                string port = Port(s);
                 if (this.Mode == SearchMode.CaseInSensitive)
                 {
                     return
                         (s.SessionName.ToLower().Contains(this.Filter.ToLower())) ||
-                        (s.Host.ToLower().Contains(this.Filter.ToLower()));
+                        (Host(s).ToLower().Contains(this.Filter.ToLower())) ||
+                        (port.ToLower().Contains(this.Filter.ToLower()));
                 }
                 else if (this.Mode == SearchMode.Regex)
                 {
-                    return this.Regex != null ? this.Regex.IsMatch(s.SessionName) : true;
+                    if (this.Regex == null) { return true; }
+                    return this.Regex.IsMatch(s.SessionName) ||
+                           this.Regex.IsMatch(Host(s)) ||
+                           this.Regex.IsMatch(port);
                 }
                 else
                 {
                     // case sensitive
                     return
                         s.SessionName.Contains(this.Filter) ||
-                        s.Host.Contains(this.Filter);
+                        Host(s).Contains(this.Filter) ||
+                        port.Contains(this.Filter);
                 }
+            }
+
+            static string Host(SessionData s)
+            {
+                return s.Host ?? string.Empty;
+            }
+
+            static string Port(SessionData s)
+            {
+                // a session that was never given a port has none to be found by
+                return s.Port > 0 ? s.Port.ToString() : string.Empty;
             }
             public SearchMode Mode { get; set; }
             public string Filter { get; set; }
