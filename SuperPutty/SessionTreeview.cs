@@ -693,6 +693,10 @@ namespace SuperPutty
             winSCPToolStripMenuItem.Visible = SuperPuTTY.IsWinSCPEnabled;
 
             connectInNewSuperPuTTYToolStripMenuItem.Enabled = !SuperPuTTY.Settings.SingleInstanceMode;
+
+            // a session that was never given a port has no port to copy
+            SessionData session = this.SelectedSession;
+            this.copyHostAndPortToolStripMenuItem.Visible = session != null && session.Port > 0;
         }
 
         #region Node helpers
@@ -1249,14 +1253,14 @@ namespace SuperPutty
         {
             SessionData session;
             session = (SessionData)treeView1.SelectedNode.Tag;
-            if (session.Port != 0)
-            {
-                Clipboard.SetText(session.Host + " " + session.Port);
-            }
-            else
-            {
-                Clipboard.SetText(session.Host);
-            }
+            Clipboard.SetText(session.Host ?? "");
+        }
+
+        private void copyHostAndPortToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SessionData session;
+            session = (SessionData)treeView1.SelectedNode.Tag;
+            Clipboard.SetText(session.HostAndPort());
         }
     }
 

@@ -6,12 +6,12 @@
  - Fixed the sessions search box overlapping the search button after a screen dpi change
  - Make VNC terminals more stable and prevent flashing
  - Open a closed panel automatically on mouse hover
- - Allow searching by IP address from the Open session window
+ - Allow searching by IP address or port from the Open session window and Session treeview
+ - Add option to copy host address with or without port
  - Move default settings location to %AppData%\SuperXPuTTY
  - Installer now install the app in %LocalAppData%\Programs\SuperXPuTTY for a non-administrative install
  - Security fixes from PuTTY upstream
  - Security fixed from log4net 3.5.0
-
 
 2.1.1.0
  - Allow VNC connection to display number (:1 instead of :5901) for display numbers lower than 100

@@ -463,6 +463,8 @@ namespace SuperPutty
 
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
+            // a session that was never given a port has no port to copy
+            this.copyHostAndPortToolStripMenuItem.Visible = this.Session != null && this.Session.Port > 0;
             CreateMenu();
         }
 
@@ -528,14 +530,12 @@ namespace SuperPutty
 
         private void copyHostNameToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (Session.Port != 0)
-            {
-                Clipboard.SetText(Session.Host + " " + Session.Port);
-            }
-            else
-            {
-                Clipboard.SetText(Session.Host);
-            }
+            Clipboard.SetText(Session.Host ?? "");
+        }
+
+        private void copyHostAndPortToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(Session.HostAndPort());
         }
 
         private void saveSessionAsToolStripMenuItem_Click(object sender, EventArgs e)

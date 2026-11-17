@@ -33,6 +33,7 @@
             this.newSessionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.duplicateSessionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyHostNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyHostAndPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.renameTabToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.refreshToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -64,6 +65,7 @@
             this.newSessionToolStripMenuItem,
             this.duplicateSessionToolStripMenuItem,
             this.copyHostNameToolStripMenuItem,
+            this.copyHostAndPortToolStripMenuItem,
             this.saveSessionAsToolStripMenuItem,
             this.toolStripSeparator1,
             this.renameTabToolStripMenuItem,
@@ -86,7 +88,7 @@
             this.closeOthersToTheRightToolStripMenuItem,
             this.closeAllToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(309, 556);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(309, 582);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // newSessionToolStripMenuItem
@@ -108,6 +110,13 @@
             this.copyHostNameToolStripMenuItem.Size = new System.Drawing.Size(308, 26);
             this.copyHostNameToolStripMenuItem.Text = "Copy host address";
             this.copyHostNameToolStripMenuItem.Click += new System.EventHandler(this.copyHostNameToolStripMenuItem_Click);
+            // 
+            // copyHostAndPortToolStripMenuItem
+            // 
+            this.copyHostAndPortToolStripMenuItem.Name = "copyHostAndPortToolStripMenuItem";
+            this.copyHostAndPortToolStripMenuItem.Size = new System.Drawing.Size(308, 26);
+            this.copyHostAndPortToolStripMenuItem.Text = "Copy host address and port";
+            this.copyHostAndPortToolStripMenuItem.Click += new System.EventHandler(this.copyHostAndPortToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
@@ -297,6 +306,7 @@
         private System.Windows.Forms.ToolStripMenuItem closeAllToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem resetAndClearScrollbackToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyHostNameToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem copyHostAndPortToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveSessionAsToolStripMenuItem;
     }
 }

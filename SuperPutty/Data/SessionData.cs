@@ -718,6 +718,15 @@ namespace SuperPutty.Data
             }
         }
 
+        /// <summary>The host on its own, and the same host with the port after it when the session
+        /// has one, as the connection toolbar takes an address when it wants both.</summary>
+        public string HostAndPort()
+        {
+            string host = this.Host ?? "";
+            // a space between the address and the port is what the toolbar splits on
+            return host.Length > 0 && this.Port > 0 ? host + " " + this.Port : host;
+        }
+
         /// <summary>Return a string containing a uri to the protocol://host:port of this sesssions defined host</summary>
         /// <returns>A string in uri format containing connection information to this sessions host</returns>
         public override string ToString()

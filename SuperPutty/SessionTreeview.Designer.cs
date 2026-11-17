@@ -38,6 +38,7 @@
             this.connectInNewSuperPuTTYToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.copyHostNameToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyHostAndPortToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createLikeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -108,6 +109,7 @@
             this.connectInNewSuperPuTTYToolStripMenuItem,
             this.toolStripSeparator1,
             this.copyHostNameToolStripMenuItem,
+            this.copyHostAndPortToolStripMenuItem,
             this.createLikeToolStripMenuItem,
             this.settingsToolStripMenuItem,
             this.deleteToolStripMenuItem,
@@ -117,7 +119,7 @@
             this.fileZillaToolStripMenuItem});
             this.contextMenuStripAddTreeItem.Name = "contextMenuStripAddTreeItem";
             this.contextMenuStripAddTreeItem.ShowImageMargin = false;
-            this.contextMenuStripAddTreeItem.Size = new System.Drawing.Size(211, 256);
+            this.contextMenuStripAddTreeItem.Size = new System.Drawing.Size(211, 280);
             this.contextMenuStripAddTreeItem.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStripAddTreeItem_Opening);
             // 
             // connectToolStripMenuItem
@@ -153,6 +155,13 @@
             this.copyHostNameToolStripMenuItem.Size = new System.Drawing.Size(210, 24);
             this.copyHostNameToolStripMenuItem.Text = "Copy host address";
             this.copyHostNameToolStripMenuItem.Click += new System.EventHandler(this.copyHostNameToolStripMenuItem_Click);
+            // 
+            // copyHostAndPortToolStripMenuItem
+            // 
+            this.copyHostAndPortToolStripMenuItem.Name = "copyHostAndPortToolStripMenuItem";
+            this.copyHostAndPortToolStripMenuItem.Size = new System.Drawing.Size(210, 24);
+            this.copyHostAndPortToolStripMenuItem.Text = "Copy host address and port";
+            this.copyHostAndPortToolStripMenuItem.Click += new System.EventHandler(this.copyHostAndPortToolStripMenuItem_Click);
             // 
             // createLikeToolStripMenuItem
             // 
@@ -404,5 +413,6 @@
         private System.Windows.Forms.ToolStripMenuItem winSCPToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fileZillaToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem copyHostNameToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem copyHostAndPortToolStripMenuItem;
     }
 }
