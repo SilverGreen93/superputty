@@ -91,23 +91,31 @@ namespace SuperPutty
 
             InitializeComponent();
             
-            // set both DockPanel and Interface theme
+            // set both DockPanel and Interface theme. The DPI aware strips are registered on the theme
+            // before it is handed over: assigning the theme recreates the dock pane strips and the auto
+            // hide strip (ThemeBase.PostApply), so registering them afterwards would be too late.
+            ThemeBase theme;
             switch (SuperPuTTY.Settings.InterfaceTheme)
             {
                 case (int)InterfaceTheme.DarkTheme:
-                    DockPanel.Theme = new VS2015DarkTheme();
+                    theme = new VS2015DarkTheme();
                     break;
                 case (int)InterfaceTheme.DarkBlueTheme:
-                    DockPanel.Theme = new VS2015BlueTheme();
+                    theme = new VS2015BlueTheme();
                     break;
                 case (int)InterfaceTheme.LightTheme:
-                    DockPanel.Theme = new VS2015LightTheme();
+                    theme = new VS2015LightTheme();
                     break;
                 default:
-                    DockPanel.Theme = new VS2015DarkTheme();
+                    theme = new VS2015DarkTheme();
                     break;
             }
-            DpiDockPaneStripFactory.Apply(DockPanel.Theme);
+            DpiDockPaneStripFactory.Apply(theme);
+            DpiAutoHideStripFactory.Apply(theme);
+            DockPanel.Theme = theme;
+            // The VS2015 themes switch DockPanel.ShowAutoHideContentOnHover off, their own auto hide
+            // strip only highlights a pinned pane's tab; DpiAutoHideStrip opens the pane itself.
+            DockPanel.ShowAutoHideContentOnHover = true;
 
             if (SuperPuTTY.Settings.InterfaceTheme < (int)InterfaceTheme.LightTheme)
             {
