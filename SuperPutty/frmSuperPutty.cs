@@ -71,6 +71,7 @@ namespace SuperPutty
         private FormWindowState lastNonMinimizedWindowState = FormWindowState.Normal;
         private Rectangle lastNormalDesktopBounds;
         private ChildWindowFocusHelper focusHelper;
+        private readonly List<ToolStripFirstClickHelper> firstClickHelpers = new List<ToolStripFirstClickHelper>();
         int commandMRUIndex = -1;
 
         private readonly TabSwitcher tabSwitcher;
@@ -188,6 +189,13 @@ namespace SuperPutty
 
             this.focusHelper = new ChildWindowFocusHelper(this);
             this.focusHelper.Start();
+
+            // one click on a button or a menu should be enough, even when another
+            // application currently has the focus
+            foreach (ToolStrip strip in new ToolStrip[] { this.menuStrip1, this.tsConnect, this.tsCommands })
+            {
+                this.firstClickHelpers.Add(new ToolStripFirstClickHelper(strip));
+            }
 
             // Check for updates if enabled. (disabled if compiled with DEBUG)
             if (SuperPuTTY.Settings.AutoUpdateCheck)
@@ -368,6 +376,10 @@ namespace SuperPutty
             }
 
             this.focusHelper.Dispose();
+            foreach (ToolStripFirstClickHelper helper in this.firstClickHelpers)
+            {
+                helper.Dispose();
+            }
 
             base.OnFormClosed(e);
         }
