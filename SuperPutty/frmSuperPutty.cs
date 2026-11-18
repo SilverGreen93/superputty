@@ -1287,8 +1287,26 @@ namespace SuperPutty
         private void tbBtnPaste_Click(object sender, EventArgs e)
         {
             if (!Clipboard.ContainsText()) return;
-            this.tsSendCommandCombo.Text = Clipboard.GetText();
-            this.tsSendCommandCombo.Focus();
+
+            ComboBox box = this.tsSendCommandCombo.ComboBox;
+            box.Focus();
+            box.SelectAll();
+
+            // The box is bound to the command history, and a bound combo box throws away a
+            // Text it is handed that is not one of its items - after sending a command there
+            // is always one selected, so assigning Text left that command in the box for
+            // Enter to send again. Typed keys never go through the binding, so paste goes to
+            // the same edit control the keys go to.
+            NativeMethods.COMBOBOXINFO info = new NativeMethods.COMBOBOXINFO();
+            info.cbSize = Marshal.SizeOf(typeof(NativeMethods.COMBOBOXINFO));
+            if (NativeMethods.GetComboBoxInfo(box.Handle, ref info) && info.hwndItem != IntPtr.Zero)
+            {
+                NativeMethods.SendMessage(info.hwndItem, (uint)NativeMethods.WM.PASTE, IntPtr.Zero, IntPtr.Zero);
+            }
+            else
+            {
+                box.Text = Clipboard.GetText();
+            }
         }
 
         private void tbBtnSendCommand_Click(object sender, EventArgs e)

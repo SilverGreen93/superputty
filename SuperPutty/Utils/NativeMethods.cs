@@ -1224,6 +1224,24 @@ namespace SuperPutty.Utils
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetWindowRect(IntPtr hWnd, ref RECT lpRect);
 
+        /// <summary>Retrieves information about a combo box, including the handle of its edit control.</summary>
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetComboBoxInfo(IntPtr hWnd, ref COMBOBOXINFO pcbi);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct COMBOBOXINFO
+        {
+            public int cbSize;
+            public RECT rcItem;
+            public RECT rcButton;
+            public uint stateButton;
+            public IntPtr hwndCombo;
+            /// <summary>The edit control a drop-down combo box types into.</summary>
+            public IntPtr hwndItem;
+            public IntPtr hwndList;
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         public struct RECT
         {
