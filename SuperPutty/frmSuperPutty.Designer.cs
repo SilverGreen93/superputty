@@ -93,6 +93,7 @@ namespace SuperPutty
             this.toolStripStatusLabelLayout = new System.Windows.Forms.ToolStripStatusLabel();
             this.tsCommands = new System.Windows.Forms.ToolStrip();
             this.tbTextSendCommands = new System.Windows.Forms.ToolStripLabel();
+            this.tbBtnPaste = new System.Windows.Forms.ToolStripButton();
             this.tsSendCommandCombo = new System.Windows.Forms.ToolStripComboBox();
             this.tbBtnSendCommand = new System.Windows.Forms.ToolStripButton();
             this.tbBtnMaskText = new System.Windows.Forms.ToolStripButton();
@@ -633,6 +634,7 @@ namespace SuperPutty
             this.tsCommands.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.tsCommands.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tbTextSendCommands,
+            this.tbBtnPaste,
             this.tsSendCommandCombo,
             this.tbBtnSendCommand,
             this.tbBtnMaskText,
@@ -643,7 +645,8 @@ namespace SuperPutty
             this.tsCommands.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.HorizontalStackWithOverflow;
             this.tsCommands.Location = new System.Drawing.Point(0, 28);
             this.tsCommands.Name = "tsCommands";
-            this.tsCommands.Size = new System.Drawing.Size(1260, 27);
+            this.tsCommands.Padding = new System.Windows.Forms.Padding(0, 1, 1, 1);
+            this.tsCommands.Size = new System.Drawing.Size(1260, 29);
             this.tsCommands.Stretch = true;
             this.tsCommands.TabIndex = 6;
             // 
@@ -654,9 +657,20 @@ namespace SuperPutty
             this.tbTextSendCommands.Size = new System.Drawing.Size(98, 24);
             this.tbTextSendCommands.Text = "Command";
             // 
+            // tbBtnPaste
+            // 
+            this.tbBtnPaste.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tbBtnPaste.Image = global::SuperPutty.Properties.Resources.paste;
+            this.tbBtnPaste.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tbBtnPaste.Name = "tbBtnPaste";
+            this.tbBtnPaste.Size = new System.Drawing.Size(29, 24);
+            this.tbBtnPaste.Text = "Paste";
+            this.tbBtnPaste.ToolTipText = "Paste the clipboard into the command box";
+            this.tbBtnPaste.Click += new System.EventHandler(this.tbBtnPaste_Click);
+            // 
             // tsSendCommandCombo
             // 
-            this.tsSendCommandCombo.Font = new System.Drawing.Font("Lucida Console", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.tsSendCommandCombo.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.tsSendCommandCombo.Name = "tsSendCommandCombo";
             this.tsSendCommandCombo.Size = new System.Drawing.Size(400, 27);
             this.tsSendCommandCombo.KeyDown += new System.Windows.Forms.KeyEventHandler(this.tsSendCommandCombo_KeyDown);
@@ -769,7 +783,7 @@ namespace SuperPutty
             // 
             // tbTxtBoxHost
             // 
-            this.tbTxtBoxHost.Font = new System.Drawing.Font("Lucida Console", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.tbTxtBoxHost.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.tbTxtBoxHost.Name = "tbTxtBoxHost";
             this.tbTxtBoxHost.Size = new System.Drawing.Size(180, 28);
             this.tbTxtBoxHost.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbItemConnect_KeyPress);
@@ -782,7 +796,7 @@ namespace SuperPutty
             // 
             // tbTxtBoxLogin
             // 
-            this.tbTxtBoxLogin.Font = new System.Drawing.Font("Lucida Console", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.tbTxtBoxLogin.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.tbTxtBoxLogin.Name = "tbTxtBoxLogin";
             this.tbTxtBoxLogin.Size = new System.Drawing.Size(110, 28);
             this.tbTxtBoxLogin.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbItemConnect_KeyPress);
@@ -795,7 +809,7 @@ namespace SuperPutty
             // 
             // tbTxtBoxPassword
             // 
-            this.tbTxtBoxPassword.Font = new System.Drawing.Font("Lucida Console", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.tbTxtBoxPassword.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.tbTxtBoxPassword.Name = "tbTxtBoxPassword";
             this.tbTxtBoxPassword.Size = new System.Drawing.Size(110, 28);
             this.tbTxtBoxPassword.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.tbItemConnect_KeyPress);
@@ -943,6 +957,7 @@ namespace SuperPutty
         private System.Windows.Forms.ToolStripButton tbBtnConnect;
         private System.Windows.Forms.ToolStrip tsCommands;
         private System.Windows.Forms.ToolStripLabel tbTextSendCommands;
+        private System.Windows.Forms.ToolStripButton tbBtnPaste;
         private System.Windows.Forms.ToolStripButton tbBtnSendCommand;
         private System.Windows.Forms.ToolStripComboBox tsSendCommandCombo;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;

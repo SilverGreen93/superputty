@@ -246,8 +246,8 @@ namespace SuperPutty
 
         // Fonts and toolbar box widths WinForms does not rescale when the DPI changes at runtime
         // (e.g. an RDP reconnect from a client with another scale). Sizes are at 96 DPI.
-        private const string UiFontFamily = "Segoe UI", MonoFontFamily = "Lucida Console";
-        private const float UiFontPoints = 9f, MonoFontPoints = 9f, TabFontPoints = 10f;
+        private const string UiFontFamily = "Segoe UI", MonoFontFamily = "Consolas";
+        private const float UiFontPoints = 9f, MonoFontPoints = 10f, TabFontPoints = 10f;
         private Dictionary<ToolStripItem, int> logicalBoxWidths;
         private Dictionary<ToolStripComboBox, int> logicalDropDownWidths;
         private int appliedDpi;
@@ -1282,6 +1282,14 @@ namespace SuperPutty
             }
         }
 
+
+        /// <summary>Puts the clipboard on the command box, ready to be edited before sending.</summary>
+        private void tbBtnPaste_Click(object sender, EventArgs e)
+        {
+            if (!Clipboard.ContainsText()) return;
+            this.tsSendCommandCombo.Text = Clipboard.GetText();
+            this.tsSendCommandCombo.Focus();
+        }
 
         private void tbBtnSendCommand_Click(object sender, EventArgs e)
         {
