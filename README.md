@@ -32,9 +32,7 @@ Documentation is available at https://github.com/jimradford/superputty/wiki/Docu
 
 ## Building and issue tracking
 
-[![CI](https://github.com/SilverGreen93/superputty/actions/workflows/ci.yml/badge.svg)](https://github.com/SilverGreen93/superputty/actions/workflows/ci.yml)
-
-The project was built with Visual Studio 2022.
+The project was built with Visual Studio 2026.
 
 To request new features or report any found issues, use the Issues tab.
 
