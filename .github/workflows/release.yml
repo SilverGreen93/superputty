@@ -2,7 +2,8 @@ name: Release
 
 # Pushing a tag such as v3.0 publishes a GitHub Release named "SuperXPuTTY 3.0"
 # containing the portable build (SuperXPuTTY-3.0.zip, putty-embed.dll included)
-# and the WiX installer (SuperXPuTTY-3.0.msi).
+# and the two WiX installers: SuperXPuTTY-3.0.msi installs for the current user,
+# SuperXPuTTY-3.0-AllUsers.msi installs for every account on the machine.
 
 on:
   push:
@@ -69,7 +70,7 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.wixproj') }}
           restore-keys: ${{ runner.os }}-nuget-
 
-      # Builds the app, the unit tests and the WiX installer; the installer msi is
+      # Builds the app, the unit tests and both WiX installers; the msi files are
       # picked up from this output further down.
       - name: Build SuperPutty.sln (Release)
         run: dotnet build SuperPutty.sln --configuration Release
@@ -86,14 +87,17 @@ jobs:
           cp "$dll" publish/
           ls -l publish
 
-      - name: Name the installer
+      - name: Name the installers
         shell: bash
         run: |
           set -euo pipefail
           msi="$(find SuperPuttyInstaller/bin -name '*.msi' -type f | head -n 1)"
           test -n "$msi"
           cp "$msi" "$PRODUCT-$VERSION.msi"
-          ls -l "$PRODUCT-$VERSION.msi"
+          allusers="$(find SuperPuttyAllUsersInstaller/bin -name '*.msi' -type f | head -n 1)"
+          test -n "$allusers"
+          cp "$allusers" "$PRODUCT-$VERSION-AllUsers.msi"
+          ls -l "$PRODUCT-$VERSION.msi" "$PRODUCT-$VERSION-AllUsers.msi"
 
       - name: Zip the portable app
         shell: pwsh
@@ -103,7 +107,7 @@ jobs:
         shell: pwsh
         run: |
           $missing = @()
-          foreach ($file in "$env:PRODUCT-$env:VERSION.zip", "$env:PRODUCT-$env:VERSION.msi") {
+          foreach ($file in "$env:PRODUCT-$env:VERSION.zip", "$env:PRODUCT-$env:VERSION.msi", "$env:PRODUCT-$env:VERSION-AllUsers.msi") {
             if (-not (Test-Path $file)) { $missing += $file }
           }
           if ($missing) {
@@ -134,7 +138,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          files=("$PRODUCT-$VERSION.zip" "$PRODUCT-$VERSION.msi")
+          files=("$PRODUCT-$VERSION.zip" "$PRODUCT-$VERSION.msi" "$PRODUCT-$VERSION-AllUsers.msi")
           notes=()
           [ -n "${NOTES_FILE:-}" ] && notes=(--notes-file "$NOTES_FILE")
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
