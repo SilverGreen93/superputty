@@ -1,40 +1,29 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util" xmlns:netfx="http://wixtoolset.org/schemas/v4/wxs/netfx" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">  
   <!--
-    One source file, two packages, picked by the PerMachine preprocessor variable:
+    One package, and the wizard asks who it is for: "Just me" or "All users"
+    (Scope=perUserOrMachine, WixUI_Advanced). WiX turns that page into ALLUSERS=2 plus
+    MSIINSTALLPERUSER, which is what Windows Installer uses to pick the context.
 
-      SuperPuttyInstaller            PerMachine not set -> per-user package   (Scope=perUser)
-      SuperPuttyAllUsersInstaller    PerMachine=yes     -> all users package  (Scope=perMachine)
+    "Just me" is not marked Privileged, so Windows Installer runs the whole installation
+    in the user's context and UAC never comes up. Files go under
+    %LOCALAPPDATA%\Programs\SuperXPuTTY and the Start Menu shortcuts land in the user's
+    own menu. A side benefit: SuperXPuTTY then runs unelevated, which is what the
+    embedded PuTTY (PuttyEmbed) needs.
 
-    The per-user package leaves ALLUSERS unset and is not marked Privileged, so Windows
-    Installer runs the whole installation in the user's context and UAC never comes up.
-    Files go under %LOCALAPPDATA%\Programs\SuperXPuTTY and the Start Menu shortcuts land
-    in the user's own menu. A side benefit: SuperXPuTTY then runs unelevated, which is
-    what the embedded PuTTY (PuttyEmbed) needs.
+    "All users" is marked Privileged by the same page, so setup asks for elevation once
+    and the files land in %ProgramFiles%\SuperXPuTTY for every account on the machine.
 
-    The all users package is marked Privileged, so setup asks for elevation once and the
-    files land in %ProgramFiles%\SuperXPuTTY for every account on the machine.
+    Windows Installer never converts one context into the other: MajorUpgrade only sees a
+    product registered in the same context, so picking "All users" over a "Just me"
+    install (or the other way round) leaves two installs and two entries under Windows
+    Settings > Apps. Switching scope means uninstalling the other install first.
 
-    Everything else is shared, but nothing that belongs to a Windows Installer component
-    can sit in the other context, so the two pieces that follow the scope are spelled out
-    from preprocessor variables: KeyRoot is the registry root the component key paths use
-    (HKCU / HKLM - ICE57 rejects the neutral HKMU in a package with a fixed scope), and
-    MenuFolder is the Start Menu location for the shortcuts (ProgramMenuFolder /
-    CommonProgramMenuFolder).
-    Windows Installer never converts one context into the other, so each package refuses
-    to install over the other flavour (see the Launch conditions below): uninstall the
-    one you have first, then install the other.
+    Nothing that belongs to a Windows Installer component may sit in the other context
+    either, which is why the registry markers below use the neutral HKMU - it resolves to
+    HKCU in a "Just me" install and HKLM in an "All users" one - while the Start Menu
+    component keeps an HKCU key path, the one location both contexts can share.
   -->
-  <?ifndef PerMachine?>
-    <?define PerMachine=no?>
-  <?endif?>
-  <?if $(var.PerMachine) = yes?>
-    <?define InstallScope=perMachine?>
-    <?define KeyRoot=HKLM?>
-  <?else?>
-    <?define InstallScope=perUser?>
-    <?define KeyRoot=HKCU?>
-  <?endif?>
-  <Package Name="SuperXPuTTY" Language="1033" Version="!(bind.fileVersion.ProductExe)" Manufacturer="SilverGreen93" UpgradeCode="03448e74-2381-4de9-93f0-58039c377caa" InstallerVersion="200" Scope="$(var.InstallScope)">
+  <Package Name="SuperXPuTTY" Language="1033" Version="!(bind.fileVersion.ProductExe)" Manufacturer="SilverGreen93" UpgradeCode="03448e74-2381-4de9-93f0-58039c377caa" InstallerVersion="200" Scope="perUserOrMachine">
     
     <Icon Id="ProductIcon" SourceFile="$(var.SuperPutty.ProjectDir)Apps-utilities-terminal.ico" />
     <Property Id="ARPPRODUCTICON" Value="ProductIcon" />
@@ -58,25 +47,6 @@
     <netfx:DotNetCompatibilityCheck Property="DOTNETDESKTOP10CHECK" RuntimeType="desktop" Platform="x64" Version="10.0.0" RollForward="latestMinor" />
     <Launch Condition="Installed OR DOTNETDESKTOP10CHECK=&quot;0&quot;" Message="[ProductName] requires the .NET 10 Desktop Runtime (x64). Download it from https://dotnet.microsoft.com/download/dotnet/10.0 and run this setup again." />
 
-    <!--
-      The "installed" value below is written by the ApplicationShortcuts component, in
-      HKCU for the per-user package and HKLM for the all users one. Each flavour searches
-      the *other* hive and refuses to run: Windows Installer cannot remove a product
-      installed in the other context, so letting this setup through would just leave two
-      copies of SuperXPuTTY fighting over the shortcuts.
-    -->
-    <?if $(var.PerMachine) = yes?>
-    <Property Id="PERUSERINSTALL">
-      <RegistrySearch Id="FindPerUserInstall" Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="installed" Type="raw" />
-    </Property>
-    <Launch Condition="Installed OR NOT PERUSERINSTALL" Message="SuperXPuTTY is already installed for the current user only ([LocalAppDataFolder]Programs\SuperXPuTTY). Uninstall it from Windows Settings &gt; Apps first, then run this setup again to install it for all users." />
-    <?else?>
-    <Property Id="MACHINEINSTALL">
-      <RegistrySearch Id="FindMachineInstall" Root="HKLM" Key="Software\SilverGreen93\SuperXPuTTY" Name="installed" Type="raw" />
-    </Property>
-    <Launch Condition="Installed OR NOT MACHINEINSTALL" Message="SuperXPuTTY is already installed for all users ([ProgramFiles64Folder]SuperXPuTTY). Uninstall it from Windows Settings &gt; Apps first, then run this setup again to install it for the current user only." />
-    <?endif?>
-
     <Media Id="1" Cabinet="Cab1.cab" EmbedCab="yes" />
     
     <Feature Id="ProductFeature" Title="SuperXPuTTY" Level="1">
@@ -91,14 +61,61 @@
     <WixVariable Id="WixUILicenseRtf" Value="$(var.SolutionDir)License.rtf" />
 
     <!--
-      WixUI_Minimal: license page, Verify Ready, progress, finish. No install-folder page,
-      because there is no choice to make - each package has one fixed location,
-      %LOCALAPPDATA%\Programs\SuperXPuTTY for the per-user setup and
-      %ProgramFiles%\SuperXPuTTY for the all users setup. Picking the flavour means picking
-      the setup file to run, not answering a page in the wizard.
+      WixUI_Advanced: license page, then a page that asks who to install for and where -
+      "Just me" (%LOCALAPPDATA%\Programs\SuperXPuTTY, the default) or "All users"
+      (%ProgramFiles%\SuperXPuTTY, with the folder editable) - followed by Verify Ready,
+      progress and finish. The page is what sets ALLUSERS=2 and MSIINSTALLPERUSER, so
+      Scope="perUserOrMachine" above and these two properties have to agree: WixAppFolder
+      names the default choice, and ApplicationFolderName is the leaf folder name the
+      wizard puts into the path it offers.
     -->
+    <Property Id="ApplicationFolderName" Value="SuperXPuTTY" />
+    <Property Id="WixAppFolder" Value="WixPerUserFolder" />
+
+    <!--
+      WixUI_Advanced builds the two paths itself and its own defaults do not match what
+      this setup used to install to: %LOCALAPPDATA%\Apps\... rather than the
+      %LOCALAPPDATA%\Programs\... every per-user Windows app uses, and the 32-bit
+      %ProgramFiles% (x86) rather than the 64-bit one this x64 build needs. Its custom
+      actions cannot be replaced by id (WiX reports WIX0091 for a duplicate), so these run
+      right before WixSetPerUserFolder and WixSetPerMachineFolder copy the chosen one into
+      APPLICATIONFOLDER.
+
+      Both sequences matter. The wizard's scope page hands APPLICATIONFOLDER the value of
+      WixPerUserFolder / WixPerMachineFolder the moment Next is clicked, and the UI sequence
+      runs the same folder actions before it shows that page; scheduling these only in the
+      install sequence leaves the page showing WiX's own Apps path, which is then already
+      fixed by the time the install sequence runs (WixSetPerUserFolder only fires while
+      APPLICATIONFOLDER is still empty).
+    -->
+    <CustomAction Id="SetSuperXPerUserFolder" Property="WixPerUserFolder" Value="[LocalAppDataFolder]Programs\[ApplicationFolderName]" Execute="immediate" />
+    <CustomAction Id="SetSuperXPerMachineFolder" Property="WixPerMachineFolder" Value="[SUPERXPROGRAMFILES64]\[ApplicationFolderName]" Execute="immediate" />
+
+    <!--
+      The 64-bit Program Files folder cannot be spelled [ProgramFiles64Folder] here: these
+      actions run while the wizard is still up, and until the scope page has been answered
+      the package carries MSIINSTALLPERUSER, so Windows Installer redirects the shell folders
+      of an unprivileged process into the profile and [ProgramFiles64Folder] answers
+      %LOCALAPPDATA%\Programs - the "All users" page would then offer a folder inside the
+      profile. The registry holds the real folder no matter which context the setup is
+      running in; an x64 package reads the 64-bit view, where ProgramW64Dir (Windows 7 and
+      later) and ProgramFilesDir are both the 64-bit folder.
+    -->
+    <Property Id="SUPERXPROGRAMFILES64" Secure="yes">
+      <RegistrySearch Id="FindProgramW64Dir" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion" Name="ProgramW64Dir" Type="raw" />
+      <RegistrySearch Id="FindProgramFilesDir" Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion" Name="ProgramFilesDir" Type="raw" />
+    </Property>
+    <InstallUISequence>
+      <Custom Action="SetSuperXPerUserFolder" Before="WixSetPerUserFolder" />
+      <Custom Action="SetSuperXPerMachineFolder" Before="WixSetPerMachineFolder" />
+    </InstallUISequence>
+    <InstallExecuteSequence>
+      <Custom Action="SetSuperXPerUserFolder" Before="WixSetPerUserFolder" />
+      <Custom Action="SetSuperXPerMachineFolder" Before="WixSetPerMachineFolder" />
+    </InstallExecuteSequence>
+
     <UI>
-      <ui:WixUI Id="WixUI_Minimal" />      
+      <ui:WixUI Id="WixUI_Advanced" />      
       <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication" Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
     </UI>
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch SuperXPuTTY" />    
@@ -107,11 +124,13 @@
   </Package>
 
   <Fragment>
-      <?if $(var.PerMachine) = yes?>
-      <!-- %ProgramFiles%\SuperXPuTTY, shared by every account on the machine.
-           ProgramFiles64Folder keeps the x64 build out of "Program Files (x86)". -->
+      <!-- Where the files go. WixUI_Advanced does not use this tree as a location, it uses
+           it as a starting point: the WixSetPerUserFolder / WixSetPerMachineFolder custom
+           actions set the APPLICATIONFOLDER property to the path picked on its page and
+           Windows Installer prefers that property over the parent chain, so the same row
+           ends up as %LOCALAPPDATA%\Programs\SuperXPuTTY or %ProgramFiles%\SuperXPuTTY. -->
       <StandardDirectory Id="ProgramFiles64Folder">
-        <Directory Id="INSTALLFOLDER" Name="SuperXPuTTY">
+        <Directory Id="APPLICATIONFOLDER" Name="SuperXPuTTY">
           <Directory Id="INSTALLTHEMEFOLDER" Name="themes">
             <Directory Id="INSTALLDEFAULTTHEME" Name="default">
               <Directory Id="INSTALLTHEMEICONSFOLDER" Name="icons" />
@@ -119,58 +138,33 @@
           </Directory>
         </Directory>
       </StandardDirectory>
-      <?else?>
-      <!-- %LOCALAPPDATA%\Programs\SuperXPuTTY, the usual spot for per-user Windows apps
-           (VS Code and friends). LocalAppDataFolder is a standard directory Windows
-           Installer resolves for the current user, so no elevation is needed. -->
-      <StandardDirectory Id="LocalAppDataFolder">
-        <Directory Id="LocalProgramsFolder" Name="Programs">
-          <Directory Id="INSTALLFOLDER" Name="SuperXPuTTY">
-            <Directory Id="INSTALLTHEMEFOLDER" Name="themes">
-              <Directory Id="INSTALLDEFAULTTHEME" Name="default">
-                <Directory Id="INSTALLTHEMEICONSFOLDER" Name="icons" />
-              </Directory>
-            </Directory>
-          </Directory>
-        </Directory>
-      </StandardDirectory>
-      <?endif?>
 
 
-      <!-- The Start Menu folder the shortcuts go into. In the per-user package that is
-           ProgramMenuFolder, which Windows Installer resolves to the current user's menu.
-           The all users package cannot use it: WiX reads it as a per-user location (ICE38
-           and ICE57 want an HKCU key path there), so the machine package spells out the
-           common menu under the shared application data folder instead. Both trees end in
-           the same "ProgramMenuSubfolder" directory, so the component below is shared. -->
-      <?if $(var.PerMachine) = yes?>
-      <StandardDirectory Id="CommonAppDataFolder">
-        <Directory Id="CommonMenuMicrosoftFolder" Name="Microsoft">
-          <Directory Id="CommonMenuWindowsFolder" Name="Windows">
-            <Directory Id="CommonMenuStartFolder" Name="Start Menu">
-              <Directory Id="CommonMenuProgramsFolder" Name="Programs">
-                <Directory Id="ProgramMenuSubfolder" Name="SuperXPuTTY" />
-              </Directory>
-            </Directory>
-          </Directory>
-        </Directory>
-      </StandardDirectory>
-      <?else?>
+      <!-- The Start Menu folder the shortcuts go into. ProgramMenuFolder is the one
+           Windows Installer resolves per context on its own: the current user's menu in a
+           "Just me" install, the shared menu under %ProgramData% in an "All users" one,
+           so both choices share this tree. Only a package with a fixed per-machine scope
+           has to spell the common menu out by hand, because ICE38 and ICE57 then want an
+           HKCU key path for this location. -->
       <StandardDirectory Id="ProgramMenuFolder">
         <Directory Id="ProgramMenuSubfolder" Name="SuperXPuTTY" />
       </StandardDirectory>
-      <?endif?>
 
       <DirectoryRef Id="ProgramMenuSubfolder">
         <Component Id="ApplicationShortcuts" Guid="0CF406F3-901A-4C75-9DCB-BE6042BC70CE">
 
-          <Shortcut Id="ApplicationShortcut1" Name="SuperXPuTTY" Description="SuperXPuTTY Terminal Window Manager" Target="[#ProductExe]" WorkingDirectory="INSTALLFOLDER" />
+          <Shortcut Id="ApplicationShortcut1" Name="SuperXPuTTY" Description="SuperXPuTTY Terminal Window Manager" Target="[#ProductExe]" WorkingDirectory="APPLICATIONFOLDER" />
 
           <util:InternetShortcut Id="ProjectWebsiteShortcut" Name="Project Website" Target="https://github.com/SilverGreen93/superputty/" />
 
           <Shortcut Id="UninstallProduct" Name="Uninstall SuperXPuTTY" Target="[SystemFolder]msiexec.exe" Arguments="/x [ProductCode]" Description="Uninstalls SuperXPuTTY" />
 
-          <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+          <!-- HKCU, not HKMU: the shortcuts themselves are per-user data (the menu they
+               go into depends on who is installing), and ICE57 refuses a key path that
+               could sit in either hive next to them. The marker is only a bookkeeping
+               value, so writing it to the installing user's HKCU in an "All users"
+               install costs nothing. -->
+          <RegistryValue Root="HKCU" Key="Software\SilverGreen93\SuperXPuTTY" Name="installed" Type="integer" Value="1" KeyPath="yes" />
 
           <RemoveFolder Id="ProgramMenuSubfolder" On="uninstall" />
         </Component>
@@ -181,72 +175,71 @@
     <!--
       Every component here keys off a registry value instead of one of its files: a
       component that installs into the user's profile must not have a file KeyPath (ICE38).
-      The values use Root="$(var.KeyRoot)" so they sit in HKCU in the per-user package and
-      in HKLM in the all users package, which is what keeps this whole component group
-      valid in both flavours. The value is only an install marker, so each file keeps its
+      The values use the neutral Root="HKMU", which Windows Installer resolves to HKCU for
+      a "Just me" install and HKLM for an "All users" one, so the same rows are correct in
+      either context. The value is only an install marker, so each file keeps its
       own component and can be repaired on its own. A component with a non-file KeyPath
       cannot have a generated Guid either, so these components spell theirs out.
       The RemoveFolder rows matter most in the profile: Windows Installer does not clean
       directories out of the profile by itself (ICE64), and it only removes a folder once
-      it is empty, so %LOCALAPPDATA%\Programs survives if other apps live there.
+      it is empty. It cleans up SuperXPuTTY's own folders; %LOCALAPPDATA%\Programs is not a
+      row in the Directory table any more (it comes from the path the wizard builds), so it
+      survives, as it does for the other per-user apps that live there.
     -->
-    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+    <ComponentGroup Id="ProductComponents" Directory="APPLICATIONFOLDER">
       <!-- .NET 10: SuperXPuTTY.exe is the native launcher, the code is in SuperXPuTTY.dll;
            no ngen (.NET Framework only) -->
       <Component Id="ProductExe" Guid="AD301A84-C006-4797-B0F2-AECEC9E4C754">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductExe" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductExe" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductExe" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.exe" />
-        <?if $(var.PerMachine) != yes?>
-        <RemoveFolder Id="RemoveLocalProgramsFolder" Directory="LocalProgramsFolder" On="uninstall" />
-        <?endif?>
-        <RemoveFolder Id="RemoveInstallFolder" Directory="INSTALLFOLDER" On="uninstall" />
+        <RemoveFolder Id="RemoveInstallFolder" Directory="APPLICATIONFOLDER" On="uninstall" />
       </Component>
       <Component Id="ProductDll" Guid="BA98487B-6C9E-4FCB-A72F-4C0B5E190F48">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductDll" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductDll" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductDll" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.dll" />
       </Component>
       <Component Id="ProductDllConfig" Guid="6D2ECE03-59EC-4E97-9C8C-0330636BB595">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductDllConfig" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductDllConfig" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductDllConfig" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.dll.config" />
       </Component>
       <Component Id="ProductRuntimeConfig" Guid="E3F1EF99-611E-4743-8FE0-2DEEBC88BD59">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductRuntimeConfig" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductRuntimeConfig" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductRuntimeConfig" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.runtimeconfig.json" />
       </Component>
       <Component Id="ProductDeps" Guid="13E922F8-3CF1-45A6-BD4A-CE11478A135A">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductDeps" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ProductDeps" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductDeps" Source="$(var.SuperPutty.TargetDir)SuperXPuTTY.deps.json" />
       </Component>
       <!-- embedded PuTTY, built by the SuperPutty project from the putty submodule;
            without it SSH/Telnet/Rlogin/Raw/Serial sessions fall back to external PuTTY -->
       <Component Id="ProductPuttyEmbed" Guid="177D2BAE-F891-4918-8078-60132B053F7A">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.PuttyEmbed" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.PuttyEmbed" Type="integer" Value="1" KeyPath="yes" />
         <File Id="ProductPuttyEmbedDll" Source="$(var.SuperPutty.TargetDir)putty-embed.dll" />
       </Component>
       <Component Id="ProductLibSystemWebAdapters" Guid="C32B1070-51B1-45BD-871C-9BEC9D9AC921">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.SystemWebAdapters" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.SystemWebAdapters" Type="integer" Value="1" KeyPath="yes" />
         <File Id="Microsoft.AspNetCore.SystemWebAdapters.dll" Source="$(var.SuperPutty.TargetDir)Microsoft.AspNetCore.SystemWebAdapters.dll" />
       </Component>
       <Component Id="ProductLibRuntimeCaching" Guid="E2410D98-D7A9-49E1-BCC5-E0E466410F05">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.RuntimeCaching" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.RuntimeCaching" Type="integer" Value="1" KeyPath="yes" />
         <File Id="System.Runtime.Caching.dll" Source="$(var.SuperPutty.TargetDir)System.Runtime.Caching.dll" />
       </Component>
       <Component Id="ProductLibLogging" Guid="5E31F8FC-BCFA-4288-A70F-ADDCA4552C24">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.log4net" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.log4net" Type="integer" Value="1" KeyPath="yes" />
         <File Id="log4net.dll" Source="$(var.SuperPutty.TargetDir)\log4net.dll" />
       </Component>
       <Component Id="ProductLibUI" Guid="FAC2DC83-26C6-45B2-BFA5-7C9D22CB5F47">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.Docking" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.Docking" Type="integer" Value="1" KeyPath="yes" />
         <File Id="WeifenLuo.WinFormsUI.Docking.dll" Source="$(var.SuperPutty.TargetDir)\WeifenLuo.WinFormsUI.Docking.dll" />
       </Component>
       <Component Id="ProductLibUITheme" Guid="9FC6A351-69DC-4E02-BBE7-600887B3F593">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.DockingTheme" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.DockingTheme" Type="integer" Value="1" KeyPath="yes" />
         <File Id="WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll" Source="$(var.SuperPutty.TargetDir)\WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll" />
       </Component>
     </ComponentGroup>
     <ComponentGroup Id="DefaultTheme" Directory="INSTALLTHEMEICONSFOLDER">
       <Component Id="ThemeIconFiles" Guid="E35C914D-0F1B-4F70-B290-4A56CEDBAC57">
-        <RegistryValue Root="$(var.KeyRoot)" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ThemeIcons" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKMU" Key="Software\SilverGreen93\SuperXPuTTY" Name="install.ThemeIcons" Type="integer" Value="1" KeyPath="yes" />
         <RemoveFolder Id="RemoveThemeIconsFolder" Directory="INSTALLTHEMEICONSFOLDER" On="uninstall" />
         <RemoveFolder Id="RemoveThemeDefaultFolder" Directory="INSTALLDEFAULTTHEME" On="uninstall" />
         <RemoveFolder Id="RemoveThemeFolder" Directory="INSTALLTHEMEFOLDER" On="uninstall" />

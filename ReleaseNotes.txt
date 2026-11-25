@@ -10,8 +10,7 @@
  - Add option to copy host address with or without port
  - Add a new paste button for the command dropdown
  - Move default settings location to %AppData%\SuperXPuTTY
- - Installer now install the app in %LocalAppData%\Programs\SuperXPuTTY for a non-administrative install
- - Added a second installer for all users, which installs in %ProgramFiles%\SuperXPuTTY and asks for elevation once
+ - Setup now asks whether to install for the current user or for all users
  - Security fixes from PuTTY upstream
  - Security fixes from log4net 3.5.0
 

@@ -1,4 +1,4 @@
-<Project Sdk="WixToolset.Sdk/5.0.2">
+<Project Sdk="WixToolset.Sdk/6.0.1">
   <PropertyGroup>
     <OutputName>SuperXPuTTYSetup</OutputName>
     <!-- the app is built for win-x64 only -->
@@ -14,12 +14,12 @@
       <Private>True</Private>
       <DoNotHarvest>True</DoNotHarvest>
       <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
-      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+      <RefTargetDir>APPLICATIONFOLDER</RefTargetDir>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="WixToolset.NetFx.wixext" Version="5.0.2" />
-    <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
-    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+    <PackageReference Include="WixToolset.NetFx.wixext" Version="6.0.1" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="6.0.1" />
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.1" />
   </ItemGroup>
 </Project>
